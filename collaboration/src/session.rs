@@ -7,9 +7,9 @@ use actix_web_actors::ws;
 use crate::server;
 
 /// How often heartbeat pings are sent
-const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
+const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(60);
 /// How long before lack of client response causes a timeout
-const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
+const CLIENT_TIMEOUT: Duration = Duration::from_secs(120);
 
 pub struct StudioSession {
     /// session唯一ID
@@ -95,46 +95,32 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for StudioSession {
                 if m.starts_with('/') {
                     let v: Vec<&str> = m.splitn(2, ' ').collect();
                     match v[0] {
-                        // "/list" => {
-                        //     // Send ListRooms message to planet server and wait for
-                        //     // response
-                        //     println!("List rooms");
-                        //     self.addr
-                        //         .send(server::ListRooms)
-                        //         .into_actor(self)
-                        //         .then(|res, _, ctx| {
-                        //             match res {
-                        //                 Ok(rooms) => {
-                        //                     for room in rooms {
-                        //                         ctx.text(room);
-                        //                     }
-                        //                 }
-                        //                 _ => println!("Something is wrong"),
-                        //             }
-                        //             fut::ready(())
-                        //         })
-                        //         .wait(ctx)
-                        //     // .wait(ctx) pauses all events in context,
-                        //     // so server wont receive any new messages until it get list
-                        //     // of rooms back
-                        // }
-                        // "/join" => {
-                        //     if v.len() == 2 {
-                        //         self.room = v[1].to_owned();
-                        //         self.addr.do_send(server::Join {
-                        //             id: self.id,
-                        //             name: self.room.clone(),
-                        //         });
-
-                        //         ctx.text("joined");
-                        //     } else {
-                        //         ctx.text("!!! room name is required");
-                        //     }
-                        // }
+                        "/list" => {
+                            // Send ListRooms message to planet server and wait for
+                            // response
+                            println!("list names");
+                            self.addr
+                                .send(server::ListNames)
+                                .into_actor(self)
+                                .then(|res, _, ctx| {
+                                    match res {
+                                        Ok(names) => {
+                                            for name in names {
+                                                ctx.text(name);
+                                            }
+                                        }
+                                        _ => println!("Something is wrong"),
+                                    }
+                                    fut::ready(())
+                                })
+                                .wait(ctx)
+                            // .wait(ctx) pauses all events in context,
+                            // so server wont receive any new messages until it get list
+                            // of rooms back
+                        }
                         "/name" => {
                             if v.len() == 2 {
-                                let name = v[1].to_owned();
-                                self.name = Some(name);
+                                self.name = Some(v[1].to_owned());
                                 self.addr.do_send(server::NameSession {
                                     id: self.id,
                                     name: v[1].to_owned(),
@@ -146,7 +132,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for StudioSession {
                         _ => ctx.text(format!("!!! unknown command: {:?}", m)),
                     }
                 } else {
-                    // ctx.text(format!("!!! unknown command: {:?}", m));
+                    ctx.text(format!("!!! unknown command: {:?}", m));
                 }
             }
             ws::Message::Binary(_) => println!("Unexpected binary"),
