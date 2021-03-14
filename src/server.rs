@@ -94,8 +94,8 @@ impl Handler<Connect> for StudioWebsocket {
     fn handle(&mut self, msg: Connect, _: &mut Self::Context) -> Self::Result {
         let id = self.rng.gen::<usize>();
         self.sessions.insert(id, msg.addr);
-
-        let count = self.visitors.fetch_add(1, Ordering::SeqCst);
+        // 新的连接不一定会引起用户数量增加,只会增加连接数量
+        // let count = self.visitors.fetch_add(1, Ordering::SeqCst);
         id
     }
 }
@@ -127,11 +127,13 @@ impl Handler<NameSession> for StudioWebsocket {
 
     fn handle(&mut self, msg: NameSession, _: &mut Self::Context) -> Self::Result {
         if let Some(sessions) = self.names.get_mut(&msg.name) {
-            if sessions.contains(&msg.id) {
-                return;
-            } else {
-                sessions.insert(msg.id);
-            }
+            sessions.insert(msg.id);
+        } else {
+            //当names不存在msg.name,添加msg.name到names中
+            let mut sessions = HashSet::with_capacity(1);
+            sessions.insert(msg.id);
+            self.names.insert(msg.name, sessions);
+            self.visitors.fetch_add(1, Ordering::SeqCst);
         }
     }
 }

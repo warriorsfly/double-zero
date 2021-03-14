@@ -28,6 +28,6 @@ pub async fn studio_route(
 
 ///  Displays and affects state
 pub async fn vistors_count(count: web::Data<Arc<AtomicUsize>>) -> impl Responder {
-    let current_count = count.fetch_add(1, Ordering::SeqCst);
+    let current_count = count.fetch_add(0, Ordering::SeqCst);
     format!("Visitors: {}", current_count)
 }

@@ -133,12 +133,12 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for StudioSession {
                         // }
                         "/name" => {
                             if v.len() == 2 {
+                                let name = v[1].to_owned();
+                                self.name = Some(name);
                                 self.addr.do_send(server::NameSession {
                                     id: self.id,
                                     name: v[1].to_owned(),
                                 });
-                                // let name = v[1].to_owned();
-                                // self.addr.self.name = Some(v[1].to_owned());
                             } else {
                                 ctx.text("!!! name is required");
                             }
