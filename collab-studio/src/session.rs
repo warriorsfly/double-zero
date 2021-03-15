@@ -90,6 +90,11 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for StudioSession {
                 self.hb = Instant::now();
             }
             ws::Message::Text(text) => {
+                //如果socket连接没有name,暂时不处理传输数据
+                //todo 添加错误返回信息
+                if self.name == None {
+                    return;
+                }
                 let m = text.trim();
                 // we check for /sss type of messages
                 if m.starts_with('/') {

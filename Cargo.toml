@@ -1,6 +1,6 @@
 [workspace]
 members = [
-   "collaboration",
+   "collab-studio",
    # for test
    "collab",
    
