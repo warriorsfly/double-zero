@@ -7,6 +7,7 @@ use crate::server;
 #[derive(Message, Deserialize)]
 #[rtype(result = "()")]
 pub struct PatientRequest {
+    /// 由websocket session传递调用人员信息
     pub request_identity: Option<String>,
     /// 查询类型,比如zjlx=01
     pub rtype: String,
@@ -14,10 +15,11 @@ pub struct PatientRequest {
     pub number: String,
 }
 
-impl Handler<PatientRequest> for server::StudioWebsocket {
+impl Handler<PatientRequest> for server::WinWebsocket {
     type Result = ();
 
     fn handle(&mut self, msg: PatientRequest, ctx: &mut Self::Context) -> Self::Result {
+        //在这里做rpc相关
         todo!()
     }
 }

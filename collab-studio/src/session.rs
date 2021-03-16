@@ -12,7 +12,7 @@ const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(60);
 /// How long before lack of client response causes a timeout
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(120);
 
-pub struct StudioSession {
+pub struct WinSocketSession {
     /// session唯一ID
     pub id: usize,
     /// session内部计时器,用于定时向客户端ping
@@ -20,10 +20,10 @@ pub struct StudioSession {
     /// 当前连接用户名
     pub identity: Option<String>,
     /// websocket addr
-    pub addr: Addr<server::StudioWebsocket>,
+    pub addr: Addr<server::WinWebsocket>,
 }
 
-impl Actor for StudioSession {
+impl Actor for WinSocketSession {
     type Context = ws::WebsocketContext<Self>;
 
     /// Method is called on server start.
@@ -62,7 +62,7 @@ impl Actor for StudioSession {
 }
 
 /// Handle messages from planet server, we simply send it to peer server
-impl Handler<server::Message> for StudioSession {
+impl Handler<server::Message> for WinSocketSession {
     type Result = ();
 
     fn handle(&mut self, msg: server::Message, ctx: &mut Self::Context) {
@@ -71,7 +71,7 @@ impl Handler<server::Message> for StudioSession {
 }
 
 /// WebSocket message handler
-impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for StudioSession {
+impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WinSocketSession {
     fn handle(&mut self, msg: Result<ws::Message, ws::ProtocolError>, ctx: &mut Self::Context) {
         let msg = match msg {
             Err(_) => {
@@ -165,7 +165,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for StudioSession {
     }
 }
 
-impl StudioSession {
+impl WinSocketSession {
     /// helper method that sends ping to client every second.
     ///
     /// also this method checks heartbeats from client

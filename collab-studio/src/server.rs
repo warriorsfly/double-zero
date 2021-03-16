@@ -44,7 +44,7 @@ impl actix::Message for ListNames {
     type Result = Vec<String>;
 }
 
-pub struct StudioWebsocket {
+pub struct WinWebsocket {
     //链接信息
     // sessions.key: websocket session的id
     // sessions.value: websocket 接受参数地址
@@ -57,7 +57,7 @@ pub struct StudioWebsocket {
     visitors: Arc<AtomicUsize>,
 }
 
-impl StudioWebsocket {
+impl WinWebsocket {
     pub fn new(count: Arc<AtomicUsize>) -> Self {
         Self {
             sessions: HashMap::with_capacity(1),
@@ -68,7 +68,7 @@ impl StudioWebsocket {
     }
 }
 
-impl StudioWebsocket {
+impl WinWebsocket {
     /// 发送消息到指定name的所有客户端
     fn send_message(&self, identity: &str, message: &str) {
         if let Some(ses) = self.identities.get(identity) {
@@ -81,11 +81,11 @@ impl StudioWebsocket {
     }
 }
 
-impl Actor for StudioWebsocket {
+impl Actor for WinWebsocket {
     type Context = Context<Self>;
 }
 
-impl Handler<Connect> for StudioWebsocket {
+impl Handler<Connect> for WinWebsocket {
     type Result = usize;
 
     fn handle(&mut self, msg: Connect, _: &mut Self::Context) -> Self::Result {
@@ -97,7 +97,7 @@ impl Handler<Connect> for StudioWebsocket {
     }
 }
 
-impl Handler<Disconnect> for StudioWebsocket {
+impl Handler<Disconnect> for WinWebsocket {
     type Result = ();
 
     fn handle(&mut self, msg: Disconnect, _: &mut Self::Context) -> Self::Result {
@@ -127,7 +127,7 @@ impl Handler<Disconnect> for StudioWebsocket {
     }
 }
 
-impl Handler<IdentitySession> for StudioWebsocket {
+impl Handler<IdentitySession> for WinWebsocket {
     type Result = ();
 
     fn handle(&mut self, msg: IdentitySession, _: &mut Self::Context) -> Self::Result {
@@ -153,7 +153,7 @@ impl Handler<IdentitySession> for StudioWebsocket {
     }
 }
 
-impl Handler<ListNames> for StudioWebsocket {
+impl Handler<ListNames> for WinWebsocket {
     type Result = MessageResult<ListNames>;
 
     fn handle(&mut self, _: ListNames, _: &mut Self::Context) -> Self::Result {
@@ -169,7 +169,7 @@ impl Handler<ListNames> for StudioWebsocket {
 pub async fn serv() -> std::io::Result<()> {
     let app_state = Arc::new(AtomicUsize::new(0));
     // Start planet server actor
-    let server = StudioWebsocket::new(app_state.clone()).start();
+    let server = WinWebsocket::new(app_state.clone()).start();
 
     // Create Http server with websocket support
     HttpServer::new(move || {
