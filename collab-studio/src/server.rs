@@ -32,7 +32,7 @@ pub struct Disconnect {
 /// 告诉Studio当前session的name
 #[derive(Message, Debug)]
 #[rtype(result = "()")]
-pub struct NameSession {
+pub struct IdentitySession {
     pub id: usize,
     pub name: String,
 }
@@ -44,34 +44,24 @@ impl actix::Message for ListNames {
     type Result = Vec<String>;
 }
 
-/// 选择患者
-#[derive(Message)]
-#[rtype(result = "()")]
-pub struct CallPatient {
-    pub id: usize,
-    pub msg: String,
-}
-
 pub struct StudioWebsocket {
     //链接信息
     // sessions.key: websocket session的id
     // sessions.value: websocket 接受参数地址
     sessions: HashMap<usize, Recipient<Message>>,
     //允许一个用户多个链接
-    // names.key:用户名,传递规则不限制,需保证唯一性
-    // names.value:sessions的key
-    names: HashMap<String, HashSet<usize>>,
+    // identities.key:用户名,传递规则不限制,需保证唯一性
+    // identities.value:sessions的key
+    identities: HashMap<String, HashSet<usize>>,
     rng: ThreadRng,
     visitors: Arc<AtomicUsize>,
 }
 
 impl StudioWebsocket {
     pub fn new(count: Arc<AtomicUsize>) -> Self {
-        // let mut rooms = HashMap::new();
-        // rooms.insert("Clients".to_owned(), HashSet::new());
         Self {
             sessions: HashMap::with_capacity(1),
-            names: HashMap::with_capacity(1),
+            identities: HashMap::with_capacity(1),
             rng: rand::thread_rng(),
             visitors: count,
         }
@@ -80,8 +70,8 @@ impl StudioWebsocket {
 
 impl StudioWebsocket {
     /// 发送消息到指定name的所有客户端
-    fn send_message(&self, name: &str, message: &str) {
-        if let Some(ses) = self.names.get(name) {
+    fn send_message(&self, identity: &str, message: &str) {
+        if let Some(ses) = self.identities.get(identity) {
             for id in ses {
                 if let Some(addr) = self.sessions.get(id) {
                     let _ = addr.do_send(Message(message.to_owned()));
@@ -115,10 +105,10 @@ impl Handler<Disconnect> for StudioWebsocket {
 
         let mut name = None;
         {
-            for (session_name, sessions) in &mut self.names {
+            for (session_name, sessions) in &mut self.identities {
                 if sessions.contains(&msg.id) {
                     sessions.remove(&msg.id);
-                    println!("WEBSOCKET {:?}", msg);
+                    println!("websocket {:?}", msg);
                     // 当names的value为空,表示当前name下没有websocket连接
                     // name下线,visitor-1
                     if sessions.is_empty() {
@@ -131,33 +121,33 @@ impl Handler<Disconnect> for StudioWebsocket {
         }
 
         if let Some(name) = name {
-            self.names.remove(&name);
-            println!("na me {:?} disconnected", &name);
+            self.identities.remove(&name);
+            println!("identity {:?} disconnected", &name);
         }
     }
 }
 
-impl Handler<NameSession> for StudioWebsocket {
+impl Handler<IdentitySession> for StudioWebsocket {
     type Result = ();
 
-    fn handle(&mut self, msg: NameSession, _: &mut Self::Context) -> Self::Result {
+    fn handle(&mut self, msg: IdentitySession, _: &mut Self::Context) -> Self::Result {
         if self
-            .names
+            .identities
             .values()
             .any(|sessions| sessions.contains(&msg.id))
         {
-            println!("/name can only used once in one websocket session");
+            println!("/identity can only used once in one websocket session");
             return;
         }
-        if let Some(sessions) = self.names.get_mut(&msg.name) {
+        if let Some(sessions) = self.identities.get_mut(&msg.name) {
             sessions.insert(msg.id);
         } else {
-            //当names不存在msg.name,添加msg.name到names中
+            //当identities不存在msg.name,添加msg.name到identities中
 
-            println!("name {:?} connected", msg.name);
+            println!("identity {:?} connected", msg.name);
             let mut sessions = HashSet::with_capacity(1);
             sessions.insert(msg.id);
-            self.names.insert(msg.name, sessions);
+            self.identities.insert(msg.name, sessions);
             self.visitors.fetch_add(1, Ordering::SeqCst);
         }
     }
@@ -167,7 +157,11 @@ impl Handler<ListNames> for StudioWebsocket {
     type Result = MessageResult<ListNames>;
 
     fn handle(&mut self, _: ListNames, _: &mut Self::Context) -> Self::Result {
-        let keys = self.names.keys().map(|item| item.to_string()).collect();
+        let keys = self
+            .identities
+            .keys()
+            .map(|item| item.to_string())
+            .collect();
         MessageResult(keys)
     }
 }

@@ -3,8 +3,9 @@ use std::time::{Duration, Instant};
 use actix::*;
 
 use actix_web_actors::ws;
+use message::PatientRequest;
 
-use crate::server;
+use crate::{message, server};
 
 /// How often heartbeat pings are sent
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(60);
@@ -17,7 +18,7 @@ pub struct StudioSession {
     /// session内部计时器,用于定时向客户端ping
     pub hb: Instant,
     /// 当前连接用户名
-    pub name: Option<String>,
+    pub identity: Option<String>,
     /// websocket addr
     pub addr: Addr<server::StudioWebsocket>,
 }
@@ -80,7 +81,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for StudioSession {
             Ok(msg) => msg,
         };
 
-        println!("WEBSOCKET MESSAGE: {:?}", msg);
+        println!("websocket message: {:?}", msg);
         match msg {
             ws::Message::Ping(msg) => {
                 self.hb = Instant::now();
@@ -92,9 +93,9 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for StudioSession {
             ws::Message::Text(text) => {
                 //如果socket连接没有name,暂时不处理传输数据
                 //todo 添加错误返回信息
-                if self.name == None {
-                    return;
-                }
+                // if self.identity == None {
+                //     return;
+                // }
                 let m = text.trim();
                 // we check for /sss type of messages
                 if m.starts_with('/') {
@@ -125,11 +126,22 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for StudioSession {
                         }
                         "/name" => {
                             if v.len() == 2 {
-                                self.name = Some(v[1].to_owned());
-                                self.addr.do_send(server::NameSession {
+                                self.identity = Some(v[1].to_owned());
+                                self.addr.do_send(server::IdentitySession {
                                     id: self.id,
                                     name: v[1].to_owned(),
                                 });
+                            } else {
+                                ctx.text("!!! name is required");
+                            }
+                        }
+
+                        "/patient" => {
+                            if v.len() == 2 {
+                                let mut patient: PatientRequest =
+                                    serde_json::from_str(v[1]).unwrap();
+                                patient.request_identity = self.identity.clone();
+                                self.addr.do_send(patient);
                             } else {
                                 ctx.text("!!! name is required");
                             }

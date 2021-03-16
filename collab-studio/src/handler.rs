@@ -18,7 +18,7 @@ pub async fn studio_route(
         StudioSession {
             id: 0,
             hb: Instant::now(),
-            name: None,
+            identity: None,
             addr: srv.get_ref().clone(),
         },
         &req,
