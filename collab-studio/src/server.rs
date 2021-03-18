@@ -50,9 +50,9 @@ pub struct WinWebsocket {
     // sessions.value: websocket 接受参数地址
     sessions: HashMap<usize, Recipient<Message>>,
     //允许一个用户多个链接
-    // identities.key:用户名,传递规则不限制,需保证唯一性
-    // identities.value:sessions的key
-    identities: HashMap<String, HashSet<usize>>,
+    // clients.key:用户名,传递规则不限制,需保证唯一性
+    // clients.value:sessions的key
+    clients: HashMap<String, HashSet<usize>>,
     rng: ThreadRng,
     visitors: Arc<AtomicUsize>,
 }
@@ -61,7 +61,7 @@ impl WinWebsocket {
     pub fn new(count: Arc<AtomicUsize>) -> Self {
         Self {
             sessions: HashMap::with_capacity(1),
-            identities: HashMap::with_capacity(1),
+            clients: HashMap::with_capacity(1),
             rng: rand::thread_rng(),
             visitors: count,
         }
@@ -71,7 +71,7 @@ impl WinWebsocket {
 impl WinWebsocket {
     /// 发送消息到指定name的所有客户端
     fn send_message(&self, identity: &str, message: &str) {
-        if let Some(ses) = self.identities.get(identity) {
+        if let Some(ses) = self.clients.get(identity) {
             for id in ses {
                 if let Some(addr) = self.sessions.get(id) {
                     let _ = addr.do_send(Message(message.to_owned()));
@@ -105,7 +105,7 @@ impl Handler<Disconnect> for WinWebsocket {
 
         let mut name = None;
         {
-            for (session_name, sessions) in &mut self.identities {
+            for (session_name, sessions) in &mut self.clients {
                 if sessions.contains(&msg.id) {
                     sessions.remove(&msg.id);
                     println!("websocket {:?}", msg);
@@ -121,7 +121,7 @@ impl Handler<Disconnect> for WinWebsocket {
         }
 
         if let Some(name) = name {
-            self.identities.remove(&name);
+            self.clients.remove(&name);
             println!("identity {:?} disconnected", &name);
         }
     }
@@ -132,14 +132,14 @@ impl Handler<IdentitySession> for WinWebsocket {
 
     fn handle(&mut self, msg: IdentitySession, _: &mut Self::Context) -> Self::Result {
         if self
-            .identities
+            .clients
             .values()
             .any(|sessions| sessions.contains(&msg.id))
         {
             println!("/identity can only used once in one websocket session");
             return;
         }
-        if let Some(sessions) = self.identities.get_mut(&msg.name) {
+        if let Some(sessions) = self.clients.get_mut(&msg.name) {
             sessions.insert(msg.id);
         } else {
             //当identities不存在msg.name,添加msg.name到identities中
@@ -147,7 +147,7 @@ impl Handler<IdentitySession> for WinWebsocket {
             println!("identity {:?} connected", msg.name);
             let mut sessions = HashSet::with_capacity(1);
             sessions.insert(msg.id);
-            self.identities.insert(msg.name, sessions);
+            self.clients.insert(msg.name, sessions);
             self.visitors.fetch_add(1, Ordering::SeqCst);
         }
     }
@@ -157,11 +157,7 @@ impl Handler<ListNames> for WinWebsocket {
     type Result = MessageResult<ListNames>;
 
     fn handle(&mut self, _: ListNames, _: &mut Self::Context) -> Self::Result {
-        let keys = self
-            .identities
-            .keys()
-            .map(|item| item.to_string())
-            .collect();
+        let keys = self.clients.keys().map(|item| item.to_string()).collect();
         MessageResult(keys)
     }
 }

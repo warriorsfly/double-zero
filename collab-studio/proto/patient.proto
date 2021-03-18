@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.winning.winsocket.rpc";
+option java_outer_classname = "Selector";
+
+package selector;
+
+service Selector{
+    rpc SelectPatient(SelectRequest) returns(SelectResponse){}
+}
+
+message SelectRequest{
+    string identity = 1;
+    string rtype = 2;
+    string number = 3;
+}
+
+message SelectResponse{
+    string identity = 1;
+    string number = 2;
+}

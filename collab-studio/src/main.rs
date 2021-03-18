@@ -5,10 +5,12 @@ mod message;
 mod server;
 mod session;
 
+/// 选择病人gRPC
+pub mod select {
+    tonic::include_proto!("patient");
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    tonic_build::configure()
-        .build_server(true)
-        .compile(&["proto/patient.proto"], &["proto/patient"])?;
     serv().await
 }

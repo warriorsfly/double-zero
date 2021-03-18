@@ -3,6 +3,8 @@ use serde::Deserialize;
 
 use crate::server;
 
+use crate::select::{select_service_client::SelectServiceClient, SelectRequest, SelectResponse};
+
 /// 选择患者
 #[derive(Message, Deserialize)]
 #[rtype(result = "()")]
