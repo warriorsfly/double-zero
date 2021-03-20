@@ -6,7 +6,7 @@ mod server;
 mod session;
 
 /// 选择病人gRPC
-pub mod select {
+pub mod patient {
     tonic::include_proto!("patient");
 }
 
