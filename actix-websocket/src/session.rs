@@ -12,18 +12,18 @@ const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(60);
 /// How long before lack of client response causes a timeout
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(120);
 
-pub struct WinSession {
+pub struct SocketSession {
     /// session唯一ID
     pub id: usize,
     /// session内部计时器,用于定时向客户端ping
     pub hb: Instant,
     /// 当前连接用户名
-    pub identity: Option<String>,
+    pub client_name: Option<String>,
     /// websocket addr
     pub addr: Addr<server::WinWebsocket>,
 }
 
-impl Actor for WinSession {
+impl Actor for SocketSession {
     type Context = ws::WebsocketContext<Self>;
 
     /// Method is called on server start.
@@ -62,7 +62,7 @@ impl Actor for WinSession {
 }
 
 /// Handle messages from planet server, we simply send it to peer server
-impl Handler<server::Message> for WinSession {
+impl Handler<server::Message> for SocketSession {
     type Result = ();
 
     fn handle(&mut self, msg: server::Message, ctx: &mut Self::Context) {
@@ -71,7 +71,7 @@ impl Handler<server::Message> for WinSession {
 }
 
 /// WebSocket message handler
-impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WinSession {
+impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketSession {
     fn handle(&mut self, msg: Result<ws::Message, ws::ProtocolError>, ctx: &mut Self::Context) {
         let msg = match msg {
             Err(_) => {
@@ -126,7 +126,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WinSession {
                         }
                         "/name" => {
                             if v.len() == 2 {
-                                self.identity = Some(v[1].to_owned());
+                                self.client_name = Some(v[1].to_owned());
                                 self.addr.do_send(server::IdentitySession {
                                     id: self.id,
                                     name: v[1].to_owned(),
@@ -154,7 +154,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WinSession {
     }
 }
 
-impl WinSession {
+impl SocketSession {
     /// helper method that sends ping to client every second.
     ///
     /// also this method checks heartbeats from client

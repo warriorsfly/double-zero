@@ -2,6 +2,6 @@
 members = [
    "actix-websocket",
    # for test
-   "collab",
+   "actix-websocket-client",
    
 ]

@@ -7,7 +7,7 @@ use std::sync::{
 };
 use std::time::Instant;
 
-use crate::{server, session::WinSession};
+use crate::{server, session::SocketSession};
 
 pub async fn studio_route(
     req: HttpRequest,
@@ -15,10 +15,10 @@ pub async fn studio_route(
     srv: web::Data<Addr<server::WinWebsocket>>,
 ) -> Result<HttpResponse, Error> {
     ws::start(
-        WinSession {
+        SocketSession {
             id: 0,
             hb: Instant::now(),
-            identity: None,
+            client_name: None,
             addr: srv.get_ref().clone(),
         },
         &req,
