@@ -1,6 +1,6 @@
 [workspace]
 members = [
-   "collab-studio",
+   "actix-websocket",
    # for test
    "collab",
    

@@ -3,7 +3,7 @@ use std::time::{Duration, Instant};
 use actix::*;
 
 use actix_web_actors::ws;
-use message::PatientRequest;
+// use message::PatientRequest;
 
 use crate::{message, server};
 
@@ -131,17 +131,6 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WinSession {
                                     id: self.id,
                                     name: v[1].to_owned(),
                                 });
-                            } else {
-                                ctx.text("!!! name is required");
-                            }
-                        }
-
-                        "/patient" => {
-                            if v.len() == 2 {
-                                let mut patient: PatientRequest =
-                                    serde_json::from_str(v[1]).unwrap();
-                                patient.request_identity = self.identity.clone();
-                                self.addr.do_send(patient);
                             } else {
                                 ctx.text("!!! name is required");
                             }

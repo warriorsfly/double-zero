@@ -81,7 +81,7 @@ impl WinWebsocket {
     }
 }
 
-impl Actor for WinWebsocket {
+impl Actor for ActSocket {
     type Context = Context<Self>;
 }
 

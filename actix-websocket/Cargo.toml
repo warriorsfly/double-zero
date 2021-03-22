@@ -1,11 +1,11 @@
 [package]
-name = "collab-studio"
+name = "actix-websocket"
 version = "0.1.0"
 authors = ["walker <warriorsfly@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-actix = "0.11.0-beta.3"
+actix = "0.11"
 actix-web = "4.0.0-beta.4"
 actix-web-actors = "4.0.0-beta.3"
 dotenv = "0.15"
