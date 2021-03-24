@@ -1,11 +1,9 @@
-use std::time::{Duration, Instant};
-
-use actix::*;
-
+use actix::{
+    fut, Actor, ActorContext, ActorFutureExt, Addr, AsyncContext, ContextFutureSpawner, Handler,
+    Running, StreamHandler, WrapFuture,
+};
 use actix_web_actors::ws;
-// use message::PatientRequest;
-
-use crate::{message, server};
+use std::time::{Duration, Instant};
 
 /// How often heartbeat pings are sent
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(60);
@@ -20,7 +18,7 @@ pub struct SocketSession {
     /// 当前连接用户名
     pub client_name: Option<String>,
     /// websocket addr
-    pub addr: Addr<server::WinWebsocket>,
+    pub addr: Addr<super::ActixWebsocket>,
 }
 
 impl Actor for SocketSession {
@@ -39,7 +37,7 @@ impl Actor for SocketSession {
         // across all routes within application
         let addr = ctx.address();
         self.addr
-            .send(server::Connect {
+            .send(super::Connect {
                 addr: addr.recipient(),
             })
             .into_actor(self)
@@ -56,16 +54,16 @@ impl Actor for SocketSession {
 
     fn stopping(&mut self, _: &mut Self::Context) -> Running {
         // notify planet server
-        self.addr.do_send(server::Disconnect { id: self.id });
+        self.addr.do_send(super::Disconnect { id: self.id });
         Running::Stop
     }
 }
 
 /// Handle messages from planet server, we simply send it to peer server
-impl Handler<server::Message> for SocketSession {
+impl Handler<super::Messaging> for SocketSession {
     type Result = ();
 
-    fn handle(&mut self, msg: server::Message, ctx: &mut Self::Context) {
+    fn handle(&mut self, msg: super::Messaging, ctx: &mut Self::Context) {
         ctx.text(msg.0);
     }
 }
@@ -101,40 +99,37 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketSession {
                 if m.starts_with('/') {
                     let v: Vec<&str> = m.splitn(2, ' ').collect();
                     match v[0] {
-                        "/list" => {
-                            // Send ListRooms message to planet server and wait for
-                            // response
-                            println!("list names");
-                            self.addr
-                                .send(server::ListNames)
-                                .into_actor(self)
-                                .then(|res, _, ctx| {
-                                    match res {
-                                        Ok(names) => {
-                                            for name in names {
-                                                ctx.text(name);
-                                            }
-                                        }
-                                        _ => println!("Something is wrong"),
-                                    }
-                                    fut::ready(())
-                                })
-                                .wait(ctx)
-                            // .wait(ctx) pauses all events in context,
-                            // so server wont receive any new messages until it get list
-                            // of rooms back
-                        }
-                        "/name" => {
-                            if v.len() == 2 {
-                                self.client_name = Some(v[1].to_owned());
-                                self.addr.do_send(server::IdentitySession {
-                                    id: self.id,
-                                    name: v[1].to_owned(),
-                                });
-                            } else {
-                                ctx.text("!!! name is required");
-                            }
-                        }
+                        // "/list" => {
+                        //     // Send ListRooms message to planet server and wait for
+                        //     // response
+                        //     println!("list names");
+                        //     self.addr
+                        //         .send(server::ListNames)
+                        //         .into_actor(self)
+                        //         .then(|res, _, ctx| {
+                        //             match res {
+                        //                 Ok(names) => {
+                        //                     for name in names {
+                        //                         ctx.text(name);
+                        //                     }
+                        //                 }
+                        //                 _ => println!("Something is wrong"),
+                        //             }
+                        //             fut::ready(())
+                        //         })
+                        //         .wait(ctx)
+                        // }
+                        // "/name" => {
+                        //     if v.len() == 2 {
+                        //         self.client_name = Some(v[1].to_owned());
+                        //         self.addr.do_send(server::IdentitySession {
+                        //             id: self.id,
+                        //             name: v[1].to_owned(),
+                        //         });
+                        //     } else {
+                        //         ctx.text("!!! name is required");
+                        //     }
+                        // }
                         _ => ctx.text(format!("!!! unknown command: {:?}", m)),
                     }
                 } else {
@@ -166,7 +161,7 @@ impl SocketSession {
                 println!("Websocket client heartbeat failed, disconnecting!");
 
                 // notify planet server
-                act.addr.do_send(server::Disconnect { id: act.id });
+                act.addr.do_send(super::Disconnect { id: act.id });
 
                 // stop server
                 ctx.stop();

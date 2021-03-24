@@ -7,12 +7,12 @@ use std::sync::{
 };
 use std::time::Instant;
 
-use crate::{server, session::SocketSession};
+use crate::socket::{self, SocketSession};
 
-pub async fn studio_route(
+pub async fn socket_route(
     req: HttpRequest,
     stream: web::Payload,
-    srv: web::Data<Addr<server::WinWebsocket>>,
+    srv: web::Data<Addr<socket::ActixWebsocket>>,
 ) -> Result<HttpResponse, Error> {
     ws::start(
         SocketSession {

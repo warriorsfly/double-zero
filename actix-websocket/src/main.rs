@@ -2,9 +2,8 @@ use server::serv;
 
 mod cache;
 mod handler;
-mod message;
 mod server;
-mod session;
+mod socket;
 
 /// 选择病人gRPC
 // pub mod patient {
