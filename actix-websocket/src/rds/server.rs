@@ -56,11 +56,11 @@ impl Handler<Online> for Redis {
     fn handle(&mut self, msg: Online, _: &mut Self::Context) -> Self::Result {
         let mut con = self.rds.get_connection()?;
         // 插入onlines 设备信息,websocket session id
-        let hs = con.hset("onlines", msg.name, msg.id);
+        con.hset("onlines", &msg.name, msg.id)?;
         // todo:cache all users with `hash`(especially redis stream group last_delivered_id,for ack)
         // 创建xgroup
         for key in CHANNELS {
-            let created = con.xgroup_create_mkstream(*key, &msg.name, "$");
+            let created: RedisResult<()> = con.xgroup_create_mkstream(*key, &msg.name, "$");
             if let Err(e) = created {
                 println!("Group already exists: {:?}", e);
             }
