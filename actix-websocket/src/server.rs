@@ -5,13 +5,13 @@ use actix_web::{middleware::Logger, web, App, HttpServer};
 
 use crate::{
     handler::{socket_route, vistors_count},
-    socket::ActixWebsocket,
+    socket::SocketSev,
 };
 
 pub async fn serv() -> std::io::Result<()> {
     let app_state = Arc::new(AtomicUsize::new(0));
-    // Start planet server actor
-    let server = ActixWebsocket::new(app_state.clone()).start();
+    // Start socket server actor
+    let server = SocketSev::new(app_state.clone()).start();
 
     // Create Http server with websocket support
     HttpServer::new(move || {

@@ -1,5 +1,5 @@
 mod message;
-mod server;
 mod session;
+mod ws;
 
-pub(crate) use {message::*, server::*, session::*};
+pub(crate) use {message::*, session::*, ws::*};

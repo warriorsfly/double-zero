@@ -41,7 +41,7 @@ impl actix::Message for ListNames {
     type Result = Vec<String>;
 }
 
-pub struct ActixWebsocket {
+pub struct SocketSev {
     //链接信息
     // sessions.key: websocket session的id
     // sessions.value: websocket 接受参数地址
@@ -50,7 +50,7 @@ pub struct ActixWebsocket {
     visitors: Arc<AtomicUsize>,
 }
 
-impl ActixWebsocket {
+impl SocketSev {
     pub fn new(count: Arc<AtomicUsize>) -> Self {
         Self {
             sessions: HashMap::with_capacity(1),
@@ -60,7 +60,7 @@ impl ActixWebsocket {
     }
 }
 
-impl ActixWebsocket {
+impl SocketSev {
     /// 发送消息到指定name的所有客户端
     fn send_message(&self, id: usize, message: &str) {
         if let Some(addr) = self.sessions.get(&id) {
@@ -69,11 +69,11 @@ impl ActixWebsocket {
     }
 }
 
-impl Actor for ActixWebsocket {
+impl Actor for SocketSev {
     type Context = Context<Self>;
 }
 
-impl Handler<Connect> for ActixWebsocket {
+impl Handler<Connect> for SocketSev {
     type Result = usize;
 
     fn handle(&mut self, msg: Connect, _: &mut Self::Context) -> Self::Result {
@@ -86,7 +86,7 @@ impl Handler<Connect> for ActixWebsocket {
     }
 }
 
-impl Handler<Disconnect> for ActixWebsocket {
+impl Handler<Disconnect> for SocketSev {
     type Result = ();
 
     fn handle(&mut self, msg: Disconnect, _: &mut Self::Context) -> Self::Result {

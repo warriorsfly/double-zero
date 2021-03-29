@@ -18,7 +18,7 @@ pub struct SocketSession {
     /// 当前连接用户名
     pub client_name: Option<String>,
     /// websocket addr
-    pub addr: Addr<super::ActixWebsocket>,
+    pub addr: Addr<super::SocketSev>,
 }
 
 impl Actor for SocketSession {
@@ -30,7 +30,7 @@ impl Actor for SocketSession {
         // we'll start heartbeat process on session start.
         self.hb(ctx);
 
-        // register self in planet server. `AsyncContext::wait` register
+        // register self in socket server. `AsyncContext::wait` register
         // future within context, but context waits until this future resolves
         // before processing any other events.
         // HttpContext::state() is instance of WsChatSessionState, state is shared
@@ -44,7 +44,7 @@ impl Actor for SocketSession {
             .then(|res, act, ctx| {
                 match res {
                     Ok(res) => act.id = res,
-                    // something is wrong with planet server
+                    // something is wrong with socket server
                     _ => ctx.stop(),
                 }
                 fut::ready(())
@@ -53,13 +53,13 @@ impl Actor for SocketSession {
     }
 
     fn stopping(&mut self, _: &mut Self::Context) -> Running {
-        // notify planet server
+        // notify socket server
         self.addr.do_send(super::Disconnect { id: self.id });
         Running::Stop
     }
 }
 
-/// Handle messages from planet server, we simply send it to peer server
+/// Handle messages from socket server, we simply send it to peer server
 impl Handler<super::Messaging> for SocketSession {
     type Result = ();
 
@@ -100,7 +100,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketSession {
                     let v: Vec<&str> = m.splitn(2, ' ').collect();
                     match v[0] {
                         // "/list" => {
-                        //     // Send ListRooms message to planet server and wait for
+                        //     // Send ListRooms message to socket server and wait for
                         //     // response
                         //     println!("list names");
                         //     self.addr
@@ -160,7 +160,7 @@ impl SocketSession {
                 // heartbeat timed out
                 println!("Websocket client heartbeat failed, disconnecting!");
 
-                // notify planet server
+                // notify socket server
                 act.addr.do_send(super::Disconnect { id: act.id });
 
                 // stop server

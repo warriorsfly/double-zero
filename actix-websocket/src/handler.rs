@@ -12,7 +12,7 @@ use crate::socket::{self, SocketSession};
 pub async fn socket_route(
     req: HttpRequest,
     stream: web::Payload,
-    srv: web::Data<Addr<socket::ActixWebsocket>>,
+    srv: web::Data<Addr<socket::SocketSev>>,
 ) -> Result<HttpResponse, Error> {
     ws::start(
         SocketSession {
