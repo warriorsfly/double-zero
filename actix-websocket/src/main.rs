@@ -1,10 +1,9 @@
 use server::serv;
 
-mod application;
+mod act;
 mod handler;
-mod rd;
+// mod rd;
 mod server;
-mod socket;
 
 /// 选择病人gRPC
 // pub mod patient {

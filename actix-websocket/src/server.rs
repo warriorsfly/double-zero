@@ -1,11 +1,11 @@
 use actix::Actor;
 use actix_web::{middleware::Logger, web, App, HttpServer};
 
-use crate::{application::Application, handler::socket_route};
+use crate::{act::Websocket, handler::socket_route};
 
 pub async fn serv() -> std::io::Result<()> {
     // Start socket server actor
-    let server = Application::default().start();
+    let server = Websocket::default().start();
 
     // Create Http server with websocket support
     HttpServer::new(move || {

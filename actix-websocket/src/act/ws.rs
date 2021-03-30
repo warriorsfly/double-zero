@@ -1,14 +1,8 @@
 use actix::prelude::*;
 use rand::{prelude::ThreadRng, Rng};
+use redis::Client;
 
-use std::{
-    collections::HashMap,
-    sync::{
-        atomic::{AtomicUsize, Ordering},
-        Arc,
-    },
-};
-
+use std::{collections::HashMap, sync::Arc};
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct Messaging(pub String);
@@ -49,24 +43,27 @@ impl actix::Message for ListNames {
     type Result = Vec<String>;
 }
 
-pub struct Application {
+pub struct Websocket {
+    redis: Arc<Client>,
     //链接信息
-    // sessions.key: websocket session的id
-    // sessions.value: websocket 接受参数地址
+    // soc_sessions.key: websocket session的id
+    // soc_sessions.value: websocket 接受参数地址
     sessions: HashMap<usize, Recipient<Messaging>>,
+    // red_sessions.key: redis steam session的id
     rng: ThreadRng,
 }
 
-impl Default for Application {
+impl Default for Websocket {
     fn default() -> Self {
         Self {
+            redis: Arc::new(Client::open("127.0.0.1").expect("error redis url")),
             sessions: HashMap::with_capacity(1),
             rng: rand::thread_rng(),
         }
     }
 }
 
-impl Application {
+impl Websocket {
     /// 发送消息到指定name的所有客户端
     fn send_message(&self, id: usize, message: &str) {
         if let Some(addr) = self.sessions.get(&id) {
@@ -75,11 +72,11 @@ impl Application {
     }
 }
 
-impl Actor for Application {
+impl Actor for Websocket {
     type Context = Context<Self>;
 }
 
-impl Handler<Connect> for Application {
+impl Handler<Connect> for Websocket {
     type Result = usize;
 
     fn handle(&mut self, msg: Connect, _: &mut Self::Context) -> Self::Result {
@@ -91,7 +88,7 @@ impl Handler<Connect> for Application {
     }
 }
 
-impl Handler<Disconnect> for Application {
+impl Handler<Disconnect> for Websocket {
     type Result = ();
 
     fn handle(&mut self, msg: Disconnect, _: &mut Self::Context) -> Self::Result {
@@ -100,7 +97,7 @@ impl Handler<Disconnect> for Application {
     }
 }
 
-impl Handler<RedisMessage> for Application {
+impl Handler<RedisMessage> for Websocket {
     type Result = ();
 
     fn handle(&mut self, msg: RedisMessage, _: &mut Self::Context) -> Self::Result {

@@ -1,27 +1,21 @@
 use actix::Addr;
-use actix_web::{web, Error, HttpRequest, HttpResponse, Responder};
+use actix_web::{web, Error, HttpRequest, HttpResponse};
 use actix_web_actors::ws;
-use std::sync::{
-    atomic::{AtomicUsize, Ordering},
-    Arc,
-};
 use std::time::Instant;
 
-use crate::{
-    application::Application,
-    socket::{self, SocketSession},
-};
+use crate::act::{Redis, Websocket, WebsocketSession};
 
 pub async fn socket_route(
     req: HttpRequest,
     stream: web::Payload,
-    srv: web::Data<Addr<Application>>,
+    redis: web::Data<Addr<Redis>>,
+    srv: web::Data<Addr<Websocket>>,
 ) -> Result<HttpResponse, Error> {
     ws::start(
-        SocketSession {
+        WebsocketSession {
             id: 0,
             hb: Instant::now(),
-            client_name: None,
+            redis: redis.get_ref().clone(),
             addr: srv.get_ref().clone(),
         },
         &req,

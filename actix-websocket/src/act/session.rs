@@ -5,25 +5,28 @@ use actix::{
 use actix_web_actors::ws;
 use std::time::{Duration, Instant};
 
-use crate::application::{Application, Connect, Disconnect, Messaging};
+use super::{
+    ws::{Connect, Disconnect, Messaging, Websocket},
+    Redis,
+};
 
 /// How often heartbeat pings are sent
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(60);
 /// How long before lack of client response causes a timeout
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(120);
 
-pub struct SocketSession {
+pub struct WebsocketSession {
     /// session唯一ID
     pub id: usize,
     /// session内部计时器,用于定时向客户端ping
     pub hb: Instant,
-    /// 当前连接用户名
-    pub client_name: Option<String>,
+    /// 当前用户链接的redis session
+    pub redis: Addr<Redis>,
     /// websocket addr
-    pub addr: Addr<Application>,
+    pub addr: Addr<Websocket>,
 }
 
-impl Actor for SocketSession {
+impl Actor for WebsocketSession {
     type Context = ws::WebsocketContext<Self>;
 
     /// Method is called on server start.
@@ -62,7 +65,7 @@ impl Actor for SocketSession {
 }
 
 /// Handle messages from socket server, we simply send it to peer server
-impl Handler<Messaging> for SocketSession {
+impl Handler<Messaging> for WebsocketSession {
     type Result = ();
 
     fn handle(&mut self, msg: Messaging, ctx: &mut Self::Context) {
@@ -71,7 +74,7 @@ impl Handler<Messaging> for SocketSession {
 }
 
 /// WebSocket message handler
-impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketSession {
+impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebsocketSession {
     fn handle(&mut self, msg: Result<ws::Message, ws::ProtocolError>, ctx: &mut Self::Context) {
         let msg = match msg {
             Err(_) => {
@@ -101,37 +104,20 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketSession {
                 if m.starts_with('/') {
                     let v: Vec<&str> = m.splitn(2, ' ').collect();
                     match v[0] {
-                        // "/list" => {
-                        //     // Send ListRooms message to socket server and wait for
-                        //     // response
-                        //     println!("list names");
-                        //     self.addr
-                        //         .send(server::ListNames)
-                        //         .into_actor(self)
-                        //         .then(|res, _, ctx| {
-                        //             match res {
-                        //                 Ok(names) => {
-                        //                     for name in names {
-                        //                         ctx.text(name);
-                        //                     }
-                        //                 }
-                        //                 _ => println!("Something is wrong"),
-                        //             }
-                        //             fut::ready(())
-                        //         })
-                        //         .wait(ctx)
-                        // }
-                        // "/name" => {
-                        //     if v.len() == 2 {
-                        //         self.client_name = Some(v[1].to_owned());
-                        //         self.addr.do_send(server::IdentitySession {
-                        //             id: self.id,
-                        //             name: v[1].to_owned(),
-                        //         });
-                        //     } else {
-                        //         ctx.text("!!! name is required");
-                        //     }
-                        // }
+                        "/name" => {
+                            if v.len() == 2 {
+                                let client_name = v[1].to_owned();
+                                // let red =
+                                //     RedisSession::new(&red, &client_name, ctx.address().clone());
+                                // self.client_name = Some(v[1].to_owned());
+                                // self.addr.do_send(server::IdentitySession {
+                                //     id: self.id,
+                                //     name: v[1].to_owned(),
+                                // });
+                            } else {
+                                ctx.text("!!! name is required");
+                            }
+                        }
                         _ => ctx.text(format!("!!! unknown command: {:?}", m)),
                     }
                 } else {
@@ -151,7 +137,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketSession {
     }
 }
 
-impl SocketSession {
+impl WebsocketSession {
     /// helper method that sends ping to client every second.
     ///
     /// also this method checks heartbeats from client

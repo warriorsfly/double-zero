@@ -1,46 +1,41 @@
-use actix::{Actor, Addr, Context, Recipient, StreamHandler, WrapFuture};
+use actix::{prelude::*, Actor, Context, Recipient};
 use redis::{
-    streams::{StreamId, StreamKey, StreamMaxlen, StreamReadOptions, StreamReadReply},
-    Client, Commands, RedisResult,
+    streams::{StreamMaxlen, StreamReadOptions, StreamReadReply},
+    Client, Commands, Connection, RedisResult,
 };
 
-use crate::act::{RedisMessage, WebsocketSession};
+/// 默认`通知` 通道
+const CHANNEL_MESSAGES: &str = "channel-messages";
+/// Android `通知` 通道
+const CHANNEL_MESSAGES_ANDROID: &str = "channel-messages-android";
+/// Ios `通知` 通道
+const CHANNEL_MESSAGES_IOS: &str = "channel-messages-ios";
 
-use super::CHANNELS;
+/// Redis Stream监听的`channels`
+const CHANNELS: &[&str] = &[
+    CHANNEL_MESSAGES,
+    CHANNEL_MESSAGES_ANDROID,
+    CHANNEL_MESSAGES_IOS,
+];
 
-pub struct RedisSession {
-    /// session唯一ID
-    pub id: usize,
-    pub client: &'static Client,
-    /// 当前连接用户名
-    pub client_name: String,
-    pub(crate) group_name: String,
-    pub(crate) consumer_name: String,
-    pub addr: Addr<WebsocketSession>,
+/// 最大允许消息100000条,按照一个地区1000个医生算,每个人可以存储100条消息
+const MAXLEN: StreamMaxlen = StreamMaxlen::Approx(100000);
+
+/// 多stream监听需要使用 block
+const BLOCK_MILLIS: usize = 5000;
+pub struct Redis {
+    cli: Client,
 }
 
-impl Actor for RedisSession {
+impl Actor for Redis {
     type Context = Context<Self>;
 }
 
-impl RedisSession {
-    pub fn new(client: &'static Client, client_name: &str, addr: Addr<WebsocketSession>) -> Self {
-        Self {
-            id: 0,
-            client,
-            client_name: client_name.to_owned(),
-            group_name: client_name.to_owned(),
-            consumer_name: format!("channel-consumer-{}", client_name),
-            addr,
-        }
-    }
-}
-
-impl RedisSession {
+impl Redis {
     /// 读取redis stream消息
     fn read_messages(&self) {
         let mut con = self
-            .client
+            .cli
             .get_connection()
             .expect("get redis connection error");
         // todo:cache all users with `hash`(especially redis stream group last_delivered_id,for ack)
@@ -84,9 +79,3 @@ impl RedisSession {
         self.read_messages();
     }
 }
-
-// impl StreamHandler<super::RedisMessage> for RedisSession {
-//     fn handle(&mut self, item: super::RedisMessage, ctx: &mut Self::Context) {
-//         todo!()
-//     }
-// }

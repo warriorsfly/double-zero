@@ -1,10 +1,9 @@
-use std::collections::HashMap;
-
-use actix::{Actor, Context, Recipient};
-use redis::{streams::StreamMaxlen, Client};
+use actix::{prelude::*, Actor, Context, Recipient};
+use redis::{streams::StreamMaxlen, Client, Connection, RedisResult};
 
 mod message;
 mod session;
+mod sr;
 
 pub(crate) use {message::*, session::*};
 
@@ -25,6 +24,10 @@ const CHANNELS: &[&str] = &[
 /// 最大允许消息100000条,按照一个地区1000个医生算,每个人可以存储100条消息
 const MAXLEN: StreamMaxlen = StreamMaxlen::Approx(100000);
 
+#[derive(Message)]
+#[rtype(result = "RedisResult<Connection>")]
+pub struct RedisConnectionRequest;
+
 pub struct Redis {
     cli: Client,
     sessions: Vec<Recipient<Online>>,
@@ -32,4 +35,12 @@ pub struct Redis {
 
 impl Actor for Redis {
     type Context = Context<Self>;
+}
+
+impl Handler<RedisConnectionRequest> for Redis {
+    type Result = RedisResult<Connection>;
+
+    fn handle(&mut self, _: RedisConnectionRequest, _: &mut Self::Context) -> Self::Result {
+        self.cli.get_connection()
+    }
 }
