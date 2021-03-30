@@ -5,6 +5,8 @@ use actix::{
 use actix_web_actors::ws;
 use std::time::{Duration, Instant};
 
+use crate::application::{Application, Connect, Disconnect, Messaging};
+
 /// How often heartbeat pings are sent
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(60);
 /// How long before lack of client response causes a timeout
@@ -18,7 +20,7 @@ pub struct SocketSession {
     /// 当前连接用户名
     pub client_name: Option<String>,
     /// websocket addr
-    pub addr: Addr<super::SocketSev>,
+    pub addr: Addr<Application>,
 }
 
 impl Actor for SocketSession {
@@ -37,7 +39,7 @@ impl Actor for SocketSession {
         // across all routes within application
         let addr = ctx.address();
         self.addr
-            .send(super::Connect {
+            .send(Connect {
                 addr: addr.recipient(),
             })
             .into_actor(self)
@@ -54,16 +56,16 @@ impl Actor for SocketSession {
 
     fn stopping(&mut self, _: &mut Self::Context) -> Running {
         // notify socket server
-        self.addr.do_send(super::Disconnect { id: self.id });
+        self.addr.do_send(Disconnect { id: self.id });
         Running::Stop
     }
 }
 
 /// Handle messages from socket server, we simply send it to peer server
-impl Handler<super::Messaging> for SocketSession {
+impl Handler<Messaging> for SocketSession {
     type Result = ();
 
-    fn handle(&mut self, msg: super::Messaging, ctx: &mut Self::Context) {
+    fn handle(&mut self, msg: Messaging, ctx: &mut Self::Context) {
         ctx.text(msg.0);
     }
 }
@@ -161,7 +163,7 @@ impl SocketSession {
                 println!("Websocket client heartbeat failed, disconnecting!");
 
                 // notify socket server
-                act.addr.do_send(super::Disconnect { id: act.id });
+                act.addr.do_send(Disconnect { id: act.id });
 
                 // stop server
                 ctx.stop();

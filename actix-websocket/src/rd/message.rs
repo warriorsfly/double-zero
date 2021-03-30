@@ -21,11 +21,3 @@ pub struct Offline {
     /// websocket session id
     pub id: usize,
 }
-/// 缓存数据
-#[derive(Message, Deserialize)]
-#[rtype(result = "()")]
-pub struct RedisMessage {
-    pub name: String,
-    pub title: String,
-    pub content: String,
-}

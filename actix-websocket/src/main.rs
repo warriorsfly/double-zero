@@ -1,7 +1,8 @@
 use server::serv;
 
+mod application;
 mod handler;
-mod rds;
+mod rd;
 mod server;
 mod socket;
 

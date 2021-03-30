@@ -7,12 +7,15 @@ use std::sync::{
 };
 use std::time::Instant;
 
-use crate::socket::{self, SocketSession};
+use crate::{
+    application::Application,
+    socket::{self, SocketSession},
+};
 
 pub async fn socket_route(
     req: HttpRequest,
     stream: web::Payload,
-    srv: web::Data<Addr<socket::SocketSev>>,
+    srv: web::Data<Addr<Application>>,
 ) -> Result<HttpResponse, Error> {
     ws::start(
         SocketSession {
@@ -24,10 +27,4 @@ pub async fn socket_route(
         &req,
         stream,
     )
-}
-
-///  Displays and affects state
-pub async fn vistors_count(count: web::Data<Arc<AtomicUsize>>) -> impl Responder {
-    let current_count = count.fetch_add(0, Ordering::SeqCst);
-    format!("Visitors: {}", current_count)
 }

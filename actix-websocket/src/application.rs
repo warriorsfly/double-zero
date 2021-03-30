@@ -34,6 +34,14 @@ pub struct IdentitySession {
     pub name: String,
 }
 
+/// 告诉Studio当前session的name
+#[derive(Message, Debug)]
+#[rtype(result = "()")]
+pub struct RedisMessage {
+    pub id: usize,
+    pub msg: String,
+}
+
 /// 显示在线的names
 pub struct ListNames;
 
@@ -41,26 +49,24 @@ impl actix::Message for ListNames {
     type Result = Vec<String>;
 }
 
-pub struct SocketSev {
+pub struct Application {
     //链接信息
     // sessions.key: websocket session的id
     // sessions.value: websocket 接受参数地址
     sessions: HashMap<usize, Recipient<Messaging>>,
     rng: ThreadRng,
-    visitors: Arc<AtomicUsize>,
 }
 
-impl SocketSev {
-    pub fn new(count: Arc<AtomicUsize>) -> Self {
+impl Default for Application {
+    fn default() -> Self {
         Self {
             sessions: HashMap::with_capacity(1),
             rng: rand::thread_rng(),
-            visitors: count,
         }
     }
 }
 
-impl SocketSev {
+impl Application {
     /// 发送消息到指定name的所有客户端
     fn send_message(&self, id: usize, message: &str) {
         if let Some(addr) = self.sessions.get(&id) {
@@ -69,29 +75,35 @@ impl SocketSev {
     }
 }
 
-impl Actor for SocketSev {
+impl Actor for Application {
     type Context = Context<Self>;
 }
 
-impl Handler<Connect> for SocketSev {
+impl Handler<Connect> for Application {
     type Result = usize;
 
     fn handle(&mut self, msg: Connect, _: &mut Self::Context) -> Self::Result {
         let id = self.rng.gen::<usize>();
         println!("websocket connection {} connected", id);
         self.sessions.insert(id, msg.addr);
-        self.visitors.fetch_add(1, Ordering::SeqCst);
         // 新的连接会增加连接数量,不一定会引起用户数量增加
         id
     }
 }
 
-impl Handler<Disconnect> for SocketSev {
+impl Handler<Disconnect> for Application {
     type Result = ();
 
     fn handle(&mut self, msg: Disconnect, _: &mut Self::Context) -> Self::Result {
         self.sessions.remove(&msg.id);
         println!("identity {:?} disconnected", &msg.id);
-        self.visitors.fetch_sub(1, Ordering::SeqCst);
+    }
+}
+
+impl Handler<RedisMessage> for Application {
+    type Result = ();
+
+    fn handle(&mut self, msg: RedisMessage, _: &mut Self::Context) -> Self::Result {
+        self.send_message(msg.id, &msg.msg);
     }
 }
