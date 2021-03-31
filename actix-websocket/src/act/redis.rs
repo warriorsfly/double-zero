@@ -1,6 +1,6 @@
 use actix::{prelude::*, Actor, Context, Recipient};
 use redis::{
-    streams::{StreamMaxlen, StreamReadOptions, StreamReadReply},
+    streams::{StreamId, StreamKey, StreamMaxlen, StreamReadOptions, StreamReadReply},
     Client, Commands, Connection, RedisResult,
 };
 
@@ -25,6 +25,7 @@ const MAXLEN: StreamMaxlen = StreamMaxlen::Approx(100000);
 const BLOCK_MILLIS: usize = 5000;
 pub struct Redis {
     cli: Client,
+    handles: Vec<String>,
 }
 
 impl Actor for Redis {
@@ -33,7 +34,7 @@ impl Actor for Redis {
 
 impl Redis {
     /// 读取redis stream消息
-    fn read_messages(&self) {
+    fn read_messages(&self, client_name: &str) {
         let mut con = self
             .cli
             .get_connection()
@@ -41,7 +42,7 @@ impl Redis {
         // todo:cache all users with `hash`(especially redis stream group last_delivered_id,for ack)
         // 创建xgroup
         for key in CHANNELS {
-            let created: RedisResult<()> = con.xgroup_create_mkstream(*key, &self.group_name, "$");
+            let created: RedisResult<()> = con.xgroup_create_mkstream(*key, client_name, "$");
             if let Err(e) = created {
                 println!("group already exists: {:?}", e);
             }
@@ -51,7 +52,7 @@ impl Redis {
         let opts = StreamReadOptions::default()
             .block(BLOCK_MILLIS)
             // .count(3)
-            .group(&self.group_name, &self.consumer_name);
+            .group(client_name, client_name);
 
         let read_reply: StreamReadReply = con
             .xread_options(CHANNELS, &[">", ">", ">"], opts)
@@ -60,7 +61,7 @@ impl Redis {
         for StreamKey { key, ids } in read_reply.keys {
             for StreamId { id, map } in &ids {
                 let socket_session_id: &usize = &con
-                    .hget("onlines", &self.client_name)
+                    .hget("onlines", client_name)
                     .expect("get online session id error");
 
                 // let _ = self.addr.send(RedisMessage {
@@ -73,9 +74,9 @@ impl Redis {
             // acknowledge each stream and message ID once all messages are
             // correctly processed
             let id_strs: Vec<&String> = ids.iter().map(|StreamId { id, map: _ }| id).collect();
-            con.xack(key, &self.group_name, &id_strs).expect("ack")
+            con.xack(key, client_name, &id_strs).expect("ack")
         }
 
-        self.read_messages();
+        self.read_messages(client_name);
     }
 }

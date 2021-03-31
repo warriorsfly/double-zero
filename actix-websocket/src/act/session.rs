@@ -21,9 +21,9 @@ pub struct WebsocketSession {
     /// session内部计时器,用于定时向客户端ping
     pub hb: Instant,
     /// 当前用户链接的redis session
-    pub redis: Addr<Redis>,
+    pub redis_addr: Addr<Redis>,
     /// websocket addr
-    pub addr: Addr<Websocket>,
+    pub websocket_addr: Addr<Websocket>,
 }
 
 impl Actor for WebsocketSession {
@@ -41,7 +41,7 @@ impl Actor for WebsocketSession {
         // HttpContext::state() is instance of WsChatSessionState, state is shared
         // across all routes within application
         let addr = ctx.address();
-        self.addr
+        self.websocket_addr
             .send(Connect {
                 addr: addr.recipient(),
             })
@@ -59,7 +59,7 @@ impl Actor for WebsocketSession {
 
     fn stopping(&mut self, _: &mut Self::Context) -> Running {
         // notify socket server
-        self.addr.do_send(Disconnect { id: self.id });
+        self.websocket_addr.do_send(Disconnect { id: self.id });
         Running::Stop
     }
 }
@@ -149,7 +149,7 @@ impl WebsocketSession {
                 println!("Websocket client heartbeat failed, disconnecting!");
 
                 // notify socket server
-                act.addr.do_send(Disconnect { id: act.id });
+                act.websocket_addr.do_send(Disconnect { id: act.id });
 
                 // stop server
                 ctx.stop();

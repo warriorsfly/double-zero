@@ -44,7 +44,6 @@ impl actix::Message for ListNames {
 }
 
 pub struct Websocket {
-    redis: Arc<Client>,
     //链接信息
     // soc_sessions.key: websocket session的id
     // soc_sessions.value: websocket 接受参数地址
@@ -56,7 +55,6 @@ pub struct Websocket {
 impl Default for Websocket {
     fn default() -> Self {
         Self {
-            redis: Arc::new(Client::open("127.0.0.1").expect("error redis url")),
             sessions: HashMap::with_capacity(1),
             rng: rand::thread_rng(),
         }
