@@ -1,8 +1,8 @@
 use server::serv;
 
 mod act;
+mod entity;
 mod handler;
-// mod rd;
 mod server;
 
 /// 选择病人gRPC

@@ -21,7 +21,7 @@ fn main() {
 
     Arbiter::spawn(async {
         let (response, framed) = Client::new()
-            .ws("http://127.0.0.1:3000/studio/")
+            .ws("http://127.0.0.1:3000/notify/")
             .connect()
             .await
             .map_err(|e| {
@@ -95,8 +95,22 @@ impl Handler<ClientCommand> for ChatClient {
 /// Handle server websocket messages
 impl StreamHandler<Result<Frame, WsProtocolError>> for ChatClient {
     fn handle(&mut self, msg: Result<Frame, WsProtocolError>, _: &mut Context<Self>) {
-        if let Ok(Frame::Text(txt)) = msg {
-            println!("Server: {:?}", txt)
+        // if let Ok(Frame::Text(txt)) = msg {
+        //     println!("Server: {:?}", txt)
+        // }
+
+        // if let Ok(Frame::Ping(_)) = msg {
+        //     self.0.write(Message::Pong(Bytes::from_static(b"")));
+        // }
+
+        match msg {
+            Ok(Frame::Text(txt)) => {
+                println!("Server: {:?}", txt);
+            }
+            Ok(Frame::Ping(_)) => {
+                self.0.write(Message::Pong(Bytes::from_static(b"")));
+            }
+            _ => {}
         }
     }
 
