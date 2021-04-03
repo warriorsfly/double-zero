@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.warriorsfly.actixwebsocket";
+option java_outer_classname = "Message";
+
+package rpc;
+
+service ActixMessage{
+    rpc SendMessage(Message) returns(stream Message){}
+    rpc ReceivMessage(Receiver) returns(stream Message){}
+}
+
+message Message{
+    // 接收方
+    string client = 1;
+    // 输入类型
+    string command = 2;
+    // 消息内容
+    string message = 3;
+}
+
+// 消息接收者
+message Receiver{
+    // 接收方
+    string client = 1;
+}

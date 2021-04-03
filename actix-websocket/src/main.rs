@@ -1,14 +1,14 @@
 use server::serv;
 
-mod cache;
+mod act;
+mod constants;
+mod entity;
 mod handler;
-mod message;
 mod server;
-mod session;
 
-/// 选择病人gRPC
-// pub mod patient {
-//     tonic::include_proto!("acc");
+/// 消息gRPC
+// pub mod rpc {
+//     tonic::include_proto!("message");
 // }
 
 #[actix_web::main]

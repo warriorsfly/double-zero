@@ -1,33 +1,24 @@
+use crate::act::{Redis, Websocket, WebsocketSession};
 use actix::Addr;
-use actix_web::{web, Error, HttpRequest, HttpResponse, Responder};
+use actix_web::{web, Error, HttpRequest, HttpResponse};
 use actix_web_actors::ws;
-use std::sync::{
-    atomic::{AtomicUsize, Ordering},
-    Arc,
-};
 use std::time::Instant;
 
-use crate::{server, session::SocketSession};
-
-pub async fn studio_route(
+pub async fn socket_route(
     req: HttpRequest,
     stream: web::Payload,
-    srv: web::Data<Addr<server::WinWebsocket>>,
+    redis_addr: web::Data<Addr<Redis>>,
+    srv: web::Data<Addr<Websocket>>,
 ) -> Result<HttpResponse, Error> {
     ws::start(
-        SocketSession {
+        WebsocketSession {
             id: 0,
+            name: None,
             hb: Instant::now(),
-            client_name: None,
+            redis_addr: redis_addr.get_ref().clone(),
             addr: srv.get_ref().clone(),
         },
         &req,
         stream,
     )
-}
-
-///  Displays and affects state
-pub async fn vistors_count(count: web::Data<Arc<AtomicUsize>>) -> impl Responder {
-    let current_count = count.fetch_add(0, Ordering::SeqCst);
-    format!("Visitors: {}", current_count)
 }
