@@ -1,2 +1,2 @@
 # actixwebsocket
-基于actix和redis-rs实现的推送服务
+基于`actix`和`redis-rs`实现的推送服务
