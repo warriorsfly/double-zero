@@ -1,2 +1,1 @@
-# actixwebsocket
-基于`actix`和`redis-rs`实现的推送服务
+基于[actix](https://actix.rs)和[redis-rs](https://github.com/mitsuhiko/redis-rs)实现websocket消息推送服务.
