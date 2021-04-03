@@ -1,5 +1,5 @@
-mod message;
+mod grpc;
 mod redis;
-mod session;
-mod ws;
-pub(crate) use self::{redis::*, session::*, ws::*};
+mod websocket;
+
+pub(crate) use self::{redis::*, websocket::*};

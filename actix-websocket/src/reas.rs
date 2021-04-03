@@ -11,7 +11,7 @@ use redis::{
 use super::WsMessage;
 
 use crate::{
-    constants::{BLOCK_MILLIS, CHANNELS, MESSAGE_INTERVAL},
+    constants::{BLOCK_MILLIS, CHANNELS},
     entity::Notification,
 };
 
@@ -102,9 +102,52 @@ impl Actor for RedisSession {
                 println!("group already exists: {:?}", e);
             }
         }
-        ctx.run_interval(MESSAGE_INTERVAL, |act, ctx| {
-            act.read_messages(ctx);
-        });
+
+        loop {
+            // 读取msg.name的未读消息,并推送
+            println!("group {} xgroup reading redis stream message", &self.name);
+            let opts = StreamReadOptions::default()
+                .block(BLOCK_MILLIS)
+                .group(&self.group_name, &self.consumer_name);
+
+            let reply: RedisResult<StreamReadReply> =
+                self.redis_addr
+                    .xread_options(CHANNELS, &[">", ">", ">"], opts);
+
+            if let Ok(reply) = reply {
+                for StreamKey { key, ids } in reply.keys {
+                    let items: Vec<Notification> = ids
+                        .iter()
+                        .map(|t| Notification {
+                            id: t.get("id").unwrap_or_default(),
+                            title: t.get("title").unwrap_or_default(),
+                            content: t.get("content").unwrap_or_default(),
+                        })
+                        .collect();
+                    let res = serde_json::to_string(&items);
+                    if let Ok(res) = res {
+                        self.websocket_addr
+                            .send(WsMessage(res))
+                            .into_actor(self)
+                            .then(|res, act, ctx| {
+                                match res {
+                                    Ok(_) => {
+                                        // let id_strs: Vec<&String> =
+                                        //     ids.iter().map(|StreamId { id, map: _ }| id).collect();
+                                        // act.redis_addr
+                                        //     .xack(key, &self.group_name, &id_strs)
+                                        //     .expect("ack error");
+                                    }
+                                    // something is wrong with socket server
+                                    _ => ctx.stop(),
+                                }
+                                fut::ready(())
+                            })
+                            .wait(ctx);
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -130,54 +173,6 @@ impl RedisSession {
             consumer_name: format!("group-{}-consumer-{}", &name, &name),
             redis_addr: connection,
             websocket_addr,
-        }
-    }
-}
-
-impl RedisSession {
-    fn read_messages(&mut self, ctx: &mut Context<Self>) {
-        // 读取msg.name的未读消息,并推送
-        println!("group {} xgroup reading redis stream message", &self.name);
-        let opts = StreamReadOptions::default()
-            .block(BLOCK_MILLIS)
-            .group(&self.group_name, &self.consumer_name);
-
-        let reply: RedisResult<StreamReadReply> =
-            self.redis_addr
-                .xread_options(CHANNELS, &[">", ">", ">"], opts);
-
-        if let Ok(reply) = reply {
-            for StreamKey { key, ids } in reply.keys {
-                let items: Vec<Notification> = ids
-                    .iter()
-                    .map(|t| Notification {
-                        id: t.get("id").unwrap_or_default(),
-                        title: t.get("title").unwrap_or_default(),
-                        content: t.get("content").unwrap_or_default(),
-                    })
-                    .collect();
-                let res = serde_json::to_string(&items);
-                if let Ok(res) = res {
-                    self.websocket_addr
-                        .send(WsMessage(res))
-                        .into_actor(self)
-                        .then(|res, act, ctx| {
-                            match res {
-                                Ok(_) => {
-                                    // let id_strs: Vec<&String> =
-                                    //     ids.iter().map(|StreamId { id, map: _ }| id).collect();
-                                    // act.redis_addr
-                                    //     .xack(key, &self.group_name, &id_strs)
-                                    //     .expect("ack error");
-                                }
-                                // something is wrong with socket server
-                                _ => ctx.stop(),
-                            }
-                            fut::ready(())
-                        })
-                        .wait(ctx);
-                }
-            }
         }
     }
 }

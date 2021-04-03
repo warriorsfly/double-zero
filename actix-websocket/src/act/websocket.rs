@@ -1,16 +1,21 @@
 use actix::prelude::*;
+use actix_web_actors::ws;
 use rand::{prelude::ThreadRng, Rng};
 
-use std::collections::HashMap;
+use std::{collections::HashMap, time::Instant};
+
+use crate::constants::{CLIENT_TIMEOUT, HEARTBEAT_INTERVAL};
+
+use super::{Offline, Online, Redis};
 #[derive(Message)]
 #[rtype(result = "()")]
-pub struct WebsocketMessage(pub String);
+pub struct WsMessage(pub String);
 
 /// 接入websocket服务
 #[derive(Message, Debug)]
 #[rtype(usize)]
 pub struct Connect {
-    pub addr: Recipient<WebsocketMessage>,
+    pub addr: Recipient<WsMessage>,
 }
 
 /// 断开websocket服务
@@ -46,7 +51,7 @@ pub struct Websocket {
     //链接信息
     // soc_sessions.key: websocket session的id
     // soc_sessions.value: websocket 接受参数地址
-    sessions: HashMap<usize, Recipient<WebsocketMessage>>,
+    sessions: HashMap<usize, Recipient<WsMessage>>,
     // red_sessions.key: redis steam session的id
     rng: ThreadRng,
 }
@@ -64,7 +69,7 @@ impl Websocket {
     /// 发送消息到指定name的所有客户端
     fn send_message(&self, id: usize, message: &str) {
         if let Some(addr) = self.sessions.get(&id) {
-            let _ = addr.do_send(WebsocketMessage(message.to_owned()));
+            let _ = addr.do_send(WsMessage(message.to_owned()));
         }
     }
 }
@@ -108,9 +113,8 @@ pub struct WebsocketSession {
     pub name: Option<String>,
     /// session内部计时器,用于定时向客户端ping
     pub hb: Instant,
-    /// 当前用户链接的redis session
-    pub redis: Connection,
     /// websocket addr
+    pub redis_addr: Addr<Redis>,
     pub addr: Addr<Websocket>,
 }
 
@@ -153,10 +157,10 @@ impl Actor for WebsocketSession {
 }
 
 /// Handle messages from socket server, we simply send it to peer server
-impl Handler<WebsocketMessage> for WebsocketSession {
+impl Handler<WsMessage> for WebsocketSession {
     type Result = ();
 
-    fn handle(&mut self, msg: WebsocketMessage, ctx: &mut Self::Context) {
+    fn handle(&mut self, msg: WsMessage, ctx: &mut Self::Context) {
         ctx.text(msg.0);
     }
 }
@@ -193,23 +197,13 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebsocketSession 
                     let v: Vec<&str> = m.splitn(2, ' ').collect();
                     if let "/name" = v[0] {
                         if v.len() == 2 {
-                            let client_name = v[1].to_owned();
-                            self.name = client_name.clone();
-                            // ctx.run_interval(Duration::from_millis(200), async {
-                            //     self.read_messages(&client_name).await
-                            // });
-                            // let execution = async {
-                            //     loop {
-                            //         let str =
-                            //             self.read_messages(&client_name).await.unwrap_or_default();
-                            //         if str.is_empty() {
-                            //             return;
-                            //         }
-                            //         ctx.text(str);
-                            //     }
-                            // };
-                            // let arb = Arbiter::new();
-                            // arb.spawn(execution);
+                            let name = v[1].to_owned();
+                            self.name = Some(name.clone());
+                            self.redis_addr.do_send(Online {
+                                id: self.id,
+                                name: name.clone(),
+                                addr: ctx.address().recipient(),
+                            });
                         } else {
                             ctx.text("!!! name is required");
                         }
@@ -239,19 +233,6 @@ impl WebsocketSession {
     /// also this method checks heartbeats from client
     fn hb(&self, ctx: &mut ws::WebsocketContext<Self>) {
         ctx.run_interval(HEARTBEAT_INTERVAL, |act, ctx| {
-            if &self.name.is_none() {
-                // heartbeat timed out
-                println!("websocket name is none for a long time, disconnecting...");
-
-                // notify socket server
-                act.addr.do_send(Disconnect { id: act.id });
-
-                // stop server
-                ctx.stop();
-
-                // don't try to send a ping
-                return;
-            }
             // check client heartbeats
             if Instant::now().duration_since(act.hb) > CLIENT_TIMEOUT {
                 // heartbeat timed out

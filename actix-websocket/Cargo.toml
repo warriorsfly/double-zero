@@ -5,10 +5,9 @@ authors = ["walker <warriorsfly@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-async-trait = "0.1"
 actix = "0.11"
-actix-web = "4.0.0-beta.4"
-actix-web-actors = "4.0.0-beta.3"
+actix-web = "4.0.0-beta.5"
+actix-web-actors = "4.0.0-beta.4"
 dotenv = "0.15"
 envy = "0.4"
 futures = "0.3"
