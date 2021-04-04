@@ -4,7 +4,7 @@ option java_multiple_files = true;
 option java_package = "com.warriorsfly.actixwebsocket";
 option java_outer_classname = "Message";
 
-package rpc;
+package message;
 
 service ActixMessage{
     rpc SendMessage(Message) returns(stream Message){}

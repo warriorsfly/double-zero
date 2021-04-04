@@ -16,7 +16,7 @@ pub async fn socket_route(
             name: None,
             hb: Instant::now(),
             redis_addr: redis_addr.get_ref().clone(),
-            addr: srv.get_ref().clone(),
+            websocket_addr: srv.get_ref().clone(),
         },
         &req,
         stream,

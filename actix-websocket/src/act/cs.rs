@@ -1,4 +1,4 @@
-use std::{collections::HashMap, thread, usize};
+use std::{collections::HashMap, usize};
 
 use actix::{prelude::*, Recipient};
 
@@ -36,7 +36,7 @@ pub struct Offline {
 }
 pub struct Redis {
     cli: Client,
-    sessions: HashMap<usize, Recipient<RedisSessionOffline>>,
+    sessions: HashMap<usize, Recipient<RedisOffline>>,
 }
 
 impl Actor for Redis {
@@ -67,20 +67,21 @@ impl Handler<Online> for Redis {
     }
 }
 
-// impl Handler<Offline> for Redis {
-//     type Result = ();
+impl Handler<Offline> for Redis {
+    type Result = ();
 
-//     fn handle(&mut self, msg: Offline, ctx: &mut Self::Context) -> Self::Result {
-//         println!("client:{} disconnected, offline redis session", &msg.id);
-//         if let Some(redis) = self.sessions.get(&msg.id) {
-//             redis.s
-//         }
-//     }
-// }
+    fn handle(&mut self, msg: Offline, _: &mut Self::Context) -> Self::Result {
+        println!("name:{} disconnected, offline redis session", &msg.id);
+        if let Some(session_addr) = self.sessions.get(&msg.id) {
+            let _ = session_addr.do_send(RedisOffline);
+            self.sessions.remove(&msg.id);
+        }
+    }
+}
 
 #[derive(Message)]
 #[rtype(result = "()")]
-pub struct RedisSessionOffline;
+pub struct RedisOffline;
 pub struct RedisSession {
     pub id: usize,
     pub name: String,
@@ -103,15 +104,15 @@ impl Actor for RedisSession {
             }
         }
         ctx.run_interval(MESSAGE_INTERVAL, |act, ctx| {
-            act.read_messages(ctx);
+            act.consume_group_messages(ctx);
         });
     }
 }
 
-impl Handler<RedisSessionOffline> for RedisSession {
+impl Handler<RedisOffline> for RedisSession {
     type Result = ();
 
-    fn handle(&mut self, _: RedisSessionOffline, ctx: &mut Self::Context) -> Self::Result {
+    fn handle(&mut self, _: RedisOffline, ctx: &mut Self::Context) -> Self::Result {
         ctx.stop();
     }
 }
@@ -135,7 +136,7 @@ impl RedisSession {
 }
 
 impl RedisSession {
-    fn read_messages(&mut self, ctx: &mut Context<Self>) {
+    fn consume_group_messages(&mut self, ctx: &mut Context<Self>) {
         // 读取msg.name的未读消息,并推送
         println!("group {} xgroup reading redis stream message", &self.name);
         let opts = StreamReadOptions::default()
@@ -148,6 +149,9 @@ impl RedisSession {
 
         if let Ok(reply) = reply {
             for StreamKey { key, ids } in reply.keys {
+                if ids.is_empty() {
+                    continue;
+                }
                 let items: Vec<Notification> = ids
                     .iter()
                     .map(|t| Notification {
@@ -161,16 +165,15 @@ impl RedisSession {
                     self.websocket_addr
                         .send(WsMessage(res))
                         .into_actor(self)
-                        .then(|res, act, ctx| {
+                        .then(move |res, act, ctx| {
                             match res {
                                 Ok(_) => {
-                                    // let id_strs: Vec<&String> =
-                                    //     ids.iter().map(|StreamId { id, map: _ }| id).collect();
-                                    // act.redis_addr
-                                    //     .xack(key, &self.group_name, &id_strs)
-                                    //     .expect("ack error");
+                                    let id_strs: &Vec<&String> =
+                                        &ids.iter().map(|StreamId { id, map: _ }| id).collect();
+                                    let _: RedisResult<()> =
+                                        act.redis_addr.xack(key, &act.group_name, id_strs);
                                 }
-                                // something is wrong with socket server
+                                // something wrong with socket server
                                 _ => ctx.stop(),
                             }
                             fut::ready(())

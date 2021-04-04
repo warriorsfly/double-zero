@@ -2,6 +2,9 @@ use std::time::Duration;
 
 use redis::streams::StreamMaxlen;
 
+/// js toISOString() in test suit can't handle chrono's default precision
+pub const DATE_FORMAT: &str = "%Y-%m-%dT%H:%M:%S%.3fZ";
+
 /// 默认`通知` 通道
 pub const CHANNEL_MESSAGES: &str = "channel-messages";
 // /// Android `通知` 通道
@@ -20,7 +23,7 @@ pub const CHANNELS: &[&str] = &[
 pub const MAXLEN: StreamMaxlen = StreamMaxlen::Approx(100000);
 
 /// 多stream监听需要使用 block
-pub const BLOCK_MILLIS: usize = 200;
+pub const BLOCK_MILLIS: usize = 400;
 
 pub const MESSAGE_INTERVAL: Duration = Duration::from_millis(500);
 /// How often heartbeat pings are sent

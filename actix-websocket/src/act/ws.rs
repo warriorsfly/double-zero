@@ -115,7 +115,7 @@ pub struct WebsocketSession {
     pub hb: Instant,
     /// websocket addr
     pub redis_addr: Addr<Redis>,
-    pub addr: Addr<Websocket>,
+    pub websocket_addr: Addr<Websocket>,
 }
 
 impl Actor for WebsocketSession {
@@ -133,7 +133,7 @@ impl Actor for WebsocketSession {
         // HttpContext::state() is instance of WsChatSessionState, state is shared
         // across all routes within application
         let addr = ctx.address();
-        self.addr
+        self.websocket_addr
             .send(Connect {
                 addr: addr.recipient(),
             })
@@ -150,8 +150,10 @@ impl Actor for WebsocketSession {
     }
 
     fn stopping(&mut self, _: &mut Self::Context) -> Running {
+        // notify redis server
+        &self.redis_addr.do_send(Offline { id: self.id });
         // notify socket server
-        self.addr.do_send(Disconnect { id: self.id });
+        &self.websocket_addr.do_send(Disconnect { id: self.id });
         Running::Stop
     }
 }
@@ -186,11 +188,6 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebsocketSession 
                 self.hb = Instant::now();
             }
             ws::Message::Text(text) => {
-                //如果socket连接没有name,暂时不处理传输数据
-                //todo 添加错误返回信息
-                // if self.identity == None {
-                //     return;
-                // }
                 let m = text.trim();
                 // we check for /sss type of messages
                 if m.starts_with('/') {
@@ -239,7 +236,7 @@ impl WebsocketSession {
                 println!("websocket client heartbeat failed, disconnecting!");
 
                 // notify socket server
-                act.addr.do_send(Disconnect { id: act.id });
+                act.websocket_addr.do_send(Disconnect { id: act.id });
 
                 // stop server
                 ctx.stop();
