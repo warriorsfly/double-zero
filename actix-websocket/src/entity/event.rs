@@ -2,14 +2,17 @@ use redis::FromRedisValue;
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize)]
-pub struct Notification {
-    pub id: String,
-    pub title: String,
-    pub content: String,
+pub struct Event {
+    /// some one
+    pub subject: String,
+    ///`{"method":"notify",content:{"id":"1","title":"ti","content":"nothing"}}`
+    pub verb: String,
+    /// any one
+    pub object: String,
 }
 
-impl FromRedisValue for Notification {
-    fn from_redis_value(v: &redis::Value) -> redis::RedisResult<Notification> {
+impl FromRedisValue for Event {
+    fn from_redis_value(v: &redis::Value) -> redis::RedisResult<Event> {
         match *v {
             redis::Value::Data(ref val) => match serde_json::from_slice(val) {
                 Err(_) => Err(((redis::ErrorKind::TypeError, "Can't unjson value")).into()),

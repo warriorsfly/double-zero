@@ -95,7 +95,7 @@ impl Handler<Disconnect> for Websocket {
 
     fn handle(&mut self, msg: Disconnect, _: &mut Self::Context) -> Self::Result {
         self.sessions.remove(&msg.id);
-        println!("client {:?} disconnected", &msg.id);
+        println!("name {:?} disconnected", &msg.id);
     }
 }
 

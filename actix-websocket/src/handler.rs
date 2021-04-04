@@ -1,4 +1,4 @@
-use crate::act::{Redis, Websocket, WebsocketSession};
+use crate::store::{Redis, Websocket, WebsocketSession};
 use actix::Addr;
 use actix_web::{web, Error, HttpRequest, HttpResponse};
 use actix_web_actors::ws;

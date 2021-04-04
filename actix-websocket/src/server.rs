@@ -1,8 +1,8 @@
 use actix_web::{middleware::Logger, web, App, HttpServer};
 
 use crate::{
-    act::{add_redis, add_websocket},
     handler::socket_route,
+    store::{add_redis, add_websocket},
 };
 
 pub async fn serv() -> std::io::Result<()> {
