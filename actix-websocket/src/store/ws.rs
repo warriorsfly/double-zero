@@ -226,8 +226,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebsocketSession 
 
 impl WebsocketSession {
     /// helper method that sends ping to client every second.
-    ///
-    /// also this method checks heartbeats from client
+    /// also this method checks pongs from client
     fn hb(&self, ctx: &mut ws::WebsocketContext<Self>) {
         ctx.run_interval(HEARTBEAT_INTERVAL, |act, ctx| {
             // check client heartbeats
@@ -235,12 +234,10 @@ impl WebsocketSession {
                 // heartbeat timed out
                 println!("websocket client heartbeat failed, disconnecting!");
 
-                // notify socket server
+                // notify socket server,websocket session need to be disconnect
                 act.websocket_addr.do_send(Disconnect { id: act.id });
-
                 // stop server
                 ctx.stop();
-
                 // don't try to send a ping
                 return;
             }

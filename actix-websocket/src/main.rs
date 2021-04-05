@@ -10,7 +10,7 @@ mod store;
 
 use server::serv;
 
-/// 消息gRPC
+/// message gRPC client
 pub mod message {
     tonic::include_proto!("message");
 }

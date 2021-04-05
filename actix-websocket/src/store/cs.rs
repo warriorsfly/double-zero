@@ -11,7 +11,7 @@ use redis::{
 use super::WsMessage;
 
 use crate::{
-    constants::{BLOCK_MILLIS, CHANNELS, MESSAGE_INTERVAL},
+    constants::{BLOCK_MILLIS, MESSAGE_INTERVAL},
     entity::Event,
 };
 
@@ -85,7 +85,7 @@ pub struct RedisSession {
     pub id: usize,
     pub name: String,
     stream_name: String,
-    pub redis_addr: Connection,
+    pub session_addr: Connection,
     pub websocket_addr: Recipient<WsMessage>,
 }
 
@@ -93,14 +93,6 @@ impl Actor for RedisSession {
     type Context = Context<Self>;
 
     fn started(&mut self, ctx: &mut Self::Context) {
-        // for key in CHANNELS {
-        //     let created: RedisResult<()> =
-        //         self.redis_addr
-        //             .xgroup_create_mkstream(*key, &self.group_name, "$");
-        //     if let Err(e) = created {
-        //         println!("group already exists: {:?}", e);
-        //     }
-        // }
         ctx.run_interval(MESSAGE_INTERVAL, |act, ctx| {
             act.read_messages(ctx);
         });
@@ -126,7 +118,7 @@ impl RedisSession {
             id,
             name: name.clone(),
             stream_name: format!("stream-messages:{}", &name),
-            redis_addr: connection,
+            session_addr: connection,
             websocket_addr,
         }
     }
@@ -135,18 +127,19 @@ impl RedisSession {
 impl RedisSession {
     fn read_messages(&mut self, ctx: &mut Context<Self>) {
         let inf: RedisResult<StreamInfoStreamReply> =
-            self.redis_addr.xinfo_stream(&self.stream_name);
+            self.session_addr.xinfo_stream(&self.stream_name);
+        // if inf is Err(_), the xadd command have not been execute, no message
         if let Ok(inf) = inf {
+            // no message in stream,keep pollings
             if inf.length == 0 {
                 return;
             }
             let opts = StreamReadOptions::default().block(BLOCK_MILLIS).count(10);
 
+            // read all messages in the stream
             let ssr: RedisResult<StreamReadReply> =
-                self.redis_addr
+                self.session_addr
                     .xread_options(&[&self.stream_name], &["0"], opts);
-            // .xread_options(&[&self.stream_name], &[&inf.first_entry.id], opts);
-
             if let Ok(ssr) = ssr {
                 for StreamKey { key, ids } in ssr.keys {
                     let items: Vec<Event> = ids
@@ -165,9 +158,11 @@ impl RedisSession {
                             .then(move |res, act, ctx| {
                                 match res {
                                     Ok(_) => {
+                                        // remove all the sended messages out from stream
                                         let id_strs: &Vec<&String> =
                                             &ids.iter().map(|StreamId { id, map: _ }| id).collect();
-                                        let _: RedisResult<()> = act.redis_addr.xdel(key, id_strs);
+                                        let _: RedisResult<()> =
+                                            act.session_addr.xdel(key, id_strs);
                                     }
                                     // something wrong with socket server
                                     _ => ctx.stop(),
@@ -180,8 +175,6 @@ impl RedisSession {
             }
         }
     }
-
-    // fn read_messages(&mut self, ctx: &mut Context<Self>) {}
 
     //  fn consume_group_messages(&mut self, ctx: &mut Context<Self>) {
     //     let opts = StreamReadOptions::default()
