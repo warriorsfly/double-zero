@@ -1,5 +1,6 @@
 use actix::prelude::*;
 use actix_web_actors::ws;
+use log::info;
 use rand::{prelude::ThreadRng, Rng};
 
 use std::{collections::HashMap, time::Instant};
@@ -83,7 +84,7 @@ impl Handler<Connect> for Websocket {
 
     fn handle(&mut self, msg: Connect, _: &mut Self::Context) -> Self::Result {
         let id = self.rng.gen::<usize>();
-        println!("websocket connection {} connected", id);
+        info!("websocket connection {} connected", id);
         self.sessions.insert(id, msg.addr);
         // 新的连接会增加连接数量,不一定会引起用户数量增加
         id
@@ -95,7 +96,7 @@ impl Handler<Disconnect> for Websocket {
 
     fn handle(&mut self, msg: Disconnect, _: &mut Self::Context) -> Self::Result {
         self.sessions.remove(&msg.id);
-        println!("name {:?} disconnected", &msg.id);
+        info!("name {:?} disconnected", &msg.id);
     }
 }
 
@@ -178,7 +179,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebsocketSession 
             Ok(msg) => msg,
         };
 
-        println!("websocket message: {:?}-{:?}", self.id, msg);
+        info!("websocket message: {:?}-{:?}", self.id, msg);
         match msg {
             ws::Message::Ping(msg) => {
                 self.hb = Instant::now();
@@ -211,7 +212,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebsocketSession 
                     ctx.text(format!("!!! unknown command: {:?}", m));
                 }
             }
-            ws::Message::Binary(_) => println!("Unexpected binary"),
+            ws::Message::Binary(_) => info!("Unexpected binary"),
             ws::Message::Close(reason) => {
                 ctx.close(reason);
                 ctx.stop();
@@ -232,7 +233,7 @@ impl WebsocketSession {
             // check client heartbeats
             if Instant::now().duration_since(act.hb) > CLIENT_TIMEOUT {
                 // heartbeat timed out
-                println!("websocket client heartbeat failed, disconnecting!");
+                info!("websocket client heartbeat failed, disconnecting!");
 
                 // notify socket server,websocket session need to be disconnect
                 act.websocket_addr.do_send(Disconnect { id: act.id });

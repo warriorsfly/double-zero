@@ -7,6 +7,8 @@ use crate::{
 };
 
 pub async fn serv() -> std::io::Result<()> {
+    std::env::set_var("RUST_LOG", &CONFIG.log);
+    env_logger::init();
     HttpServer::new(move || {
         App::new()
             .wrap(Logger::default())

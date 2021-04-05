@@ -2,6 +2,7 @@ use std::{collections::HashMap, usize};
 
 use actix::{prelude::*, Recipient};
 
+use log::info;
 use redis::streams::{StreamId, StreamInfoStreamReply, StreamReadOptions};
 use redis::{
     streams::{StreamKey, StreamReadReply},
@@ -55,7 +56,7 @@ impl Handler<Online> for Redis {
     type Result = ();
 
     fn handle(&mut self, msg: Online, _ctx: &mut Self::Context) -> Self::Result {
-        println!("start creating redis connection for `{}`", &msg.name);
+        info!("start creating redis connection for `{}`", &msg.name);
         let con = self
             .cli
             .get_connection()
@@ -70,7 +71,7 @@ impl Handler<Offline> for Redis {
     type Result = ();
 
     fn handle(&mut self, msg: Offline, _: &mut Self::Context) -> Self::Result {
-        println!("name:{} disconnected, offline redis session", &msg.id);
+        info!("name:{} disconnected, offline redis session", &msg.id);
         if let Some(session_addr) = self.sessions.get(&msg.id) {
             let _ = session_addr.do_send(RedisOffline);
             self.sessions.remove(&msg.id);
