@@ -6,7 +6,7 @@ pub struct Event {
     /// some one
     pub subject: String,
     ///`{"method":"notify",content:{"id":"1","title":"ti","content":"nothing"}}`
-    pub verb: String,
+    pub act: String,
     /// any one
     pub object: String,
 }

@@ -147,7 +147,7 @@ impl RedisSession {
                         .iter()
                         .map(|t| Event {
                             subject: t.get("subject").unwrap_or_default(),
-                            verb: t.get("verb").unwrap_or_default(),
+                            act: t.get("act").unwrap_or_default(),
                             object: t.get("object").unwrap_or_default(),
                         })
                         .collect();
