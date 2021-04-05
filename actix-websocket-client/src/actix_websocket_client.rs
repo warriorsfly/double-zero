@@ -21,8 +21,8 @@ fn main() {
 
     Arbiter::spawn(async {
         let (response, framed) = Client::new()
-            .ws("http://127.0.0.1:20000/socket.io/?EIO=3&transport=websocket&secretKey=winning")
-            // .ws("http://127.0.0.1:3000/notify/")
+            // .ws("http://127.0.0.1:20000/socket.io/?EIO=3&transport=websocket&secretKey=winning")
+            .ws("http://127.0.0.1:3000/ws/")
             .connect()
             .await
             .map_err(|e| {
