@@ -1,12 +1,12 @@
 #[macro_use]
 extern crate lazy_static;
 
+mod addr;
 mod config;
 mod constants;
 mod entity;
 mod handler;
 mod server;
-mod store;
 
 use server::serv;
 

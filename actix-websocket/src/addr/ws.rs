@@ -1,6 +1,6 @@
 use actix::prelude::*;
 use actix_web_actors::ws;
-use log::info;
+use log::{debug, info};
 use rand::{prelude::ThreadRng, Rng};
 
 use std::{collections::HashMap, time::Instant};
@@ -96,7 +96,7 @@ impl Handler<Disconnect> for Websocket {
 
     fn handle(&mut self, msg: Disconnect, _: &mut Self::Context) -> Self::Result {
         self.sessions.remove(&msg.id);
-        info!("name {:?} disconnected", &msg.id);
+        info!("name:{:?} disconnected", &msg.id);
     }
 }
 
@@ -179,7 +179,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebsocketSession 
             Ok(msg) => msg,
         };
 
-        info!("websocket message: {:?}-{:?}", self.id, msg);
+        debug!("websocket message: {:?}-{:?}", self.id, msg);
         match msg {
             ws::Message::Ping(msg) => {
                 self.hb = Instant::now();
