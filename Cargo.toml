@@ -3,6 +3,7 @@ members = [
    "actix-dc",
    "actix-websocket",
    # for test
+   # "actix-websocket-client",
    "actix-websocket-client",
    
 ]

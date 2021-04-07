@@ -224,3 +224,16 @@ impl RedisSession {
     //     }
     // }
 }
+
+// impl ActorFuture for RedisSession {
+//     type Output;
+
+//     fn poll(
+//         self: std::pin::Pin<&mut Self>,
+//         srv: &mut A,
+//         ctx: &mut A::Context,
+//         task: &mut std::task::Context<'_>,
+//     ) -> std::task::Poll<Self::Output> {
+//         todo!()
+//     }
+// }

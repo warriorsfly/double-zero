@@ -17,9 +17,9 @@ fn main() {
     ::std::env::set_var("RUST_LOG", "actix_web=info");
     env_logger::init();
 
-    let sys = System::new("websocket-client");
-
-    Arbiter::spawn(async {
+    let sys = System::new();
+    let arb = Arbiter::new();
+    arb.spawn(async {
         let (response, framed) = Client::new()
             // .ws("http://127.0.0.1:20000/socket.io/?EIO=3&transport=websocket&secretKey=winning")
             .ws("http://127.0.0.1:3000/ws/")
@@ -89,7 +89,7 @@ impl Handler<ClientCommand> for ChatClient {
     type Result = ();
 
     fn handle(&mut self, msg: ClientCommand, _ctx: &mut Context<Self>) {
-        self.0.write(Message::Text(msg.0));
+        self.0.write(Message::Text(msg.0.into()));
     }
 }
 
