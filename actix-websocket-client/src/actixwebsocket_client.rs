@@ -13,15 +13,14 @@ use awc::{
 use bytes::Bytes;
 use futures::stream::{SplitSink, StreamExt};
 
-fn main() {
+#[actix::main]
+async fn main() {
     ::std::env::set_var("RUST_LOG", "actix_web=info");
     env_logger::init();
 
-    let sys = System::new();
     let arb = Arbiter::new();
-    arb.spawn(async {
+    arb.spawn_fn({
         let (response, framed) = Client::new()
-            // .ws("http://127.0.0.1:20000/socket.io/?EIO=3&transport=websocket&secretKey=winning")
             .ws("http://127.0.0.1:3000/ws/")
             .connect()
             .await
@@ -44,17 +43,16 @@ fn main() {
                 println!("error");
                 return;
             }
-            addr.do_send(ClientCommand(cmd));
+            addr.do_send(WebsocketCommand(cmd));
         });
     });
-    sys.run().unwrap();
 }
 
 struct ChatClient(SinkWrite<Message, SplitSink<Framed<BoxedSocket, Codec>, Message>>);
 
 #[derive(Message)]
 #[rtype(result = "()")]
-struct ClientCommand(String);
+struct WebsocketCommand(String);
 
 impl Actor for ChatClient {
     type Context = Context<Self>;
@@ -85,10 +83,10 @@ impl ChatClient {
 }
 
 /// Handle stdin commands
-impl Handler<ClientCommand> for ChatClient {
+impl Handler<WebsocketCommand> for ChatClient {
     type Result = ();
 
-    fn handle(&mut self, msg: ClientCommand, _ctx: &mut Context<Self>) {
+    fn handle(&mut self, msg: WebsocketCommand, _ctx: &mut Context<Self>) {
         self.0.write(Message::Text(msg.0.into()));
     }
 }

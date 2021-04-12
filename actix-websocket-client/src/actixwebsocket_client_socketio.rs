@@ -31,6 +31,7 @@ async fn main() -> std::io::Result<()> {
             })
             .unwrap();
 
+            let i:usize = "1".into();
         println!("{:?}", response);
         let (sink, stream) = framed.split();
         let addr = WebsocketSession::create(|ctx| {
