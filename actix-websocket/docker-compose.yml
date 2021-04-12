@@ -10,17 +10,17 @@ services:
   #     - NGINX_PORT=80
   actixwebsocket:
     image: warriorsfly/actixwebsocket
-    container_name: actix-websocket-server
+    container_name: actixwebsocket
     ports:
       - "3000:3000"
     env_file:
       - .env.docker
     environment:
-      - REDIS_URL=redis://message-stream
+      - REDIS_URL=redis://redis
     depends_on:
-      - message-stream
+      - redis
 
-  message-stream:
+  redis:
     image: redis:alpine
     container_name: redis
     ports:
