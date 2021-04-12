@@ -29,7 +29,7 @@ services:
       - redis_data:/var/lib/redis/data
     restart: always
 #   后面要补上 flutter前端
-#   application:
+#   flutter:
 volumes:
   redis_data:
     driver: local

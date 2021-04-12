@@ -28,6 +28,6 @@ pub fn add_websocket(cfg: &mut web::ServiceConfig) {
 pub async fn init_rpc(rpc_url: &'static str) -> MsgRpc {
     let cli = ActixMessageClient::connect(rpc_url)
         .await
-        .expect(format!("unable to connect to redis:{}", rpc_url).as_str());
+        .expect(format!("unable to connect to grpc:{}", rpc_url).as_str());
     MsgRpc { cli }
 }
