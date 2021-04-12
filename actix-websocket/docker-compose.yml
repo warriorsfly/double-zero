@@ -19,6 +19,8 @@ services:
       - REDIS_URL=redis://redis
     depends_on:
       - redis
+    volumes:
+      - actix_websocket_data:/var/lib/actix_web/data
 
   redis:
     image: redis:alpine
@@ -32,4 +34,6 @@ services:
 #   flutter:
 volumes:
   redis_data:
+    driver: local
+  actix_websocket_data:
     driver: local
