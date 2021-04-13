@@ -1,9 +1,8 @@
 [workspace]
 members = [
-   "actix-dc",
+   "actix-push",
    "actix-websocket",
    # for test
-   # "actix-websocket-client",
    "actix-websocket-client",
    
 ]

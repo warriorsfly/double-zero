@@ -17,7 +17,6 @@ use futures::stream::{SplitSink, StreamExt};
 async fn main() {
     ::std::env::set_var("RUST_LOG", "actix_web=info");
     env_logger::init();
-
     let (response, framed) = Client::new()
         .ws("http://127.0.0.1:3000/ws/")
         .connect()
@@ -26,7 +25,6 @@ async fn main() {
             println!("Error: {}", e);
         })
         .unwrap();
-
     println!("{:?}", response);
     let (sink, stream) = framed.split();
     let addr = ChatClient::create(|ctx| {
@@ -34,7 +32,6 @@ async fn main() {
         ChatClient(SinkWrite::new(sink, ctx))
     });
 
-    // start console loop
     thread::spawn(move || loop {
         let mut cmd = String::new();
         if io::stdin().read_line(&mut cmd).is_err() {
