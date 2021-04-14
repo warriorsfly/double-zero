@@ -1,25 +1,36 @@
 syntax = "proto3";
 
 option java_multiple_files = true;
-option java_package = "com.warriorsfly.actixwebsocket";
-option java_outer_classname = "Message";
+option java_package = "com.warriorsfly.rtc";
+option java_outer_classname = "RtcMessage";
 
 package message;
 
-service ActixMessage{
-    rpc SendMessage(Message) returns(stream Message){}
-    rpc ReceivMessage(Receiver) returns(stream Message){}
+service RtcMessage{
+    rpc SendMessage(Mail) returns(stream MailEvent){}
+    rpc ActorMessageState(MailEvent) returns(MailEvent){}
 }
 
-message Message{
-    // 接收方
-    string name = 1;
-    // 消息内容
-    string message = 3;
+message Mail{
+    string id = 1;
+    // 发送者,暂时冗余吧
+    string sender = 2;
+    // 正文(可能有固定的标识字段类似于标定Json、Html、Xml之类的)
+    string content = 3;
+    // 接收者
+    repeated string receivers = 4;
+    
 }
 
-// 消息接收者
-message Receiver{
-    // 接收方
-    string name = 1;
+message MailEvent{
+    //邮件id
+    string mail = 1;
+    string sender = 2;
+    //接收者,抄送者的id,应该是同一个表的,不需要区分角色
+    repeated string receivers = 3;
+    // 事件类型
+    //接收、读取,what ever,也可以是个json
+    string event = 4;
+    //事件时间
+    uint32 expire_at = 5;
 }

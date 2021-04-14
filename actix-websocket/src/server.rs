@@ -1,8 +1,7 @@
-use actix::Actor;
 use actix_web::{middleware::Logger, web, App, HttpServer};
 
 use crate::{
-    addr::{add_redis, add_websocket, init_rpc},
+    addr::{add_redis, add_websocket},
     config::CONFIG,
     handler::socket_route,
 };

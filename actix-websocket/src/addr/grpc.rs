@@ -1,9 +1,9 @@
 use actix::{Actor, Context};
 use tonic::transport::Channel;
 
-use crate::message::{actix_message_client::ActixMessageClient, Message, Receiver};
+use crate::message::rtc_message_client::RtcMessageClient;
 pub struct MsgRpc {
-    pub cli: ActixMessageClient<Channel>,
+    pub cli: RtcMessageClient<Channel>,
 }
 
 impl Actor for MsgRpc {
