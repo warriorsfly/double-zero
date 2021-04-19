@@ -1,5 +1,5 @@
 [package]
-name = "actix-websocket"
+name = "exia-websocket"
 version = "0.1.1"
 authors = ["walker <warriorsfly@gmail.com>"]
 edition = "2018"
@@ -17,7 +17,7 @@ futures = "0.3"
 lazy_static = "1"
 log = "0.4"
 rand= "0.8"
-redis = "0.20"
+redis ={ version = "0.20", features = ["tokio-comp"] }
 
 # for serialize
 serde = { version = "1", features = ["derive"] }

@@ -5,6 +5,7 @@ use actix::{prelude::*, Recipient};
 use log::info;
 use redis::streams::{StreamId, StreamInfoStreamReply, StreamReadOptions};
 use redis::{
+    aio::{Connection, MultiplexedConnection},
     streams::{StreamKey, StreamReadReply},
     Client, Commands, Connection, RedisResult,
 };
@@ -57,13 +58,20 @@ impl Handler<Online> for Redis {
 
     fn handle(&mut self, msg: Online, _ctx: &mut Self::Context) -> Self::Result {
         info!("start creating redis connection for `{}`", &msg.name);
-        let con = self
-            .cli
-            .get_connection()
-            .expect("get redis connection error");
-        let addr = RedisSession::new(msg.id, msg.name, con, msg.addr).start();
 
-        self.sessions.insert(msg.id, addr.recipient());
+        ctx.spawn(async {
+            let con = self
+                .cli
+                .get_multiplexed_tokio_connection()
+                .await
+                .expect("get redis connection error");
+
+            let addr =
+                RedisSession::create(|ctx| RedisSession::new(msg.id, msg.name, con, msg.addr));
+            // let addr = RedisSession::new(msg.id, msg.name, con, msg.addr).start();
+
+            self.sessions.insert(msg.id, addr.recipient());
+        });
     }
 }
 
@@ -86,7 +94,7 @@ pub struct RedisSession {
     pub id: usize,
     pub name: String,
     stream_name: String,
-    pub session_addr: Connection,
+    pub session_addr: MultiplexedConnection,
     pub websocket_addr: Recipient<WsMessage>,
 }
 
@@ -225,15 +233,15 @@ impl RedisSession {
     // }
 }
 
-impl ActorFuture for RedisSession {
-    type Output;
+impl ActorStream for RedisSession {
+    type Item = Vec<Event>;
 
-    fn poll(
+    fn poll_next(
         self: std::pin::Pin<&mut Self>,
         srv: &mut A,
         ctx: &mut A::Context,
         task: &mut std::task::Context<'_>,
-    ) -> std::task::Poll<Self::Output> {
+    ) -> std::task::Poll<Option<Self::Item>> {
         todo!()
     }
 }
