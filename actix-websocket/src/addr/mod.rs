@@ -1,5 +1,5 @@
-mod cs;
 mod grpc;
+mod rd;
 mod ws;
 
 use crate::{config::CONFIG, message::rtc_message_client::RtcMessageClient};
@@ -7,7 +7,7 @@ use actix::{Actor, Addr};
 use actix_web::web;
 use redis::Client;
 
-pub(crate) use self::{cs::*, grpc::*, ws::*};
+pub(crate) use self::{grpc::*, rd::*, ws::*};
 
 fn init_redis(redis_url: &str) -> Addr<Redis> {
     let cli = Client::open(redis_url)
