@@ -1,12 +1,13 @@
 [package]
-name = "actix-websocket"
+# 高达00里面的veda,我希望后面这个可以做做人工智能
+name = "veda"
 version = "0.1.1"
 authors = ["walker <warriorsfly@gmail.com>"]
 edition = "2018"
 
 [dependencies]
 actix = "0.11"
-actix-web = "4.0.0-beta.5"
+actix-web = "4.0.0-beta.6"
 actix-web-actors = "4.0.0-beta.4"
 
 # config and log

@@ -1,5 +1,5 @@
-mod cs;
 mod grpc;
+mod red;
 mod ws;
 
 use crate::{config::CONFIG, message::rtc_message_client::RtcMessageClient};
@@ -7,7 +7,7 @@ use actix::{Actor, Addr};
 use actix_web::web;
 use redis::Client;
 
-pub(crate) use self::{cs::*, grpc::*, ws::*};
+pub(crate) use self::{grpc::*, red::*, ws::*};
 
 fn init_redis(redis_url: &str) -> Addr<Redis> {
     let cli = Client::open(redis_url)
@@ -25,9 +25,9 @@ pub fn add_websocket(cfg: &mut web::ServiceConfig) {
     cfg.data(addr);
 }
 
-pub async fn init_rpc(rpc_url: &'static str) -> MsgRpc {
-    let cli = RtcMessageClient::connect(rpc_url)
-        .await
-        .expect(format!("unable to connect to grpc:{}", rpc_url).as_str());
-    MsgRpc { cli }
-}
+// pub async fn init_rpc(rpc_url: &'static str) -> MsgRpc {
+//     let cli = RtcMessageClient::connect(rpc_url)
+//         .await
+//         .expect(format!("unable to connect to grpc:{}", rpc_url).as_str());
+//     MsgRpc { cli }
+// }
