@@ -1,6 +1,12 @@
-use crate::addr::{Redis, Websocket, WebsocketSession};
+use crate::{
+    addr::{Redis, Websocket, WebsocketSession},
+    entity::{MessageAction, PushMessage},
+};
 use actix::Addr;
-use actix_web::{web, Error, HttpRequest, HttpResponse};
+use actix_web::{
+    web::{self, Json},
+    Error, HttpRequest, HttpResponse,
+};
 use actix_web_actors::ws;
 use std::time::Instant;
 
@@ -21,4 +27,13 @@ pub async fn socket_route(
         &req,
         stream,
     )
+}
+
+pub async fn push_msg_route(
+    msg: Json<PushMessage>,
+    redis_addr: web::Data<Addr<Redis>>,
+    srv: web::Data<Addr<Websocket>>,
+) -> Result<MessageAction, Error> {
+    let ws_addr = srv.as_ref();
+    ws_addr.send(msg)
 }

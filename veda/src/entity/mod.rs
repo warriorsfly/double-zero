@@ -1,2 +1,3 @@
 mod event;
-pub use self::event::*;
+mod msg;
+pub use self::{event::*, msg::*};

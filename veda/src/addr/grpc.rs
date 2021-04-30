@@ -1,34 +1,33 @@
-use actix::{Actor, Context};
-use tonic::transport::Channel;
+// use crate::message::msg_box_server::MsgBox;
+// use actix::{Actor, Context};
+// use tonic::transport::Channel;
+// // use crate::message::rtc_message_client::RtcMessageClient;
+// // pub struct MsgRpc {
+// //     pub cli: RtcMessageClient<Channel>,
+// // }
 
-use crate::message::rtc_message_server::RtcMessage;
-// use crate::message::rtc_message_client::RtcMessageClient;
-// pub struct MsgRpc {
-//     pub cli: RtcMessageClient<Channel>,
+// // #[derive(Default)]
+// pub struct Grpc {
+//     redis_addr: Recipient<WsMessage>,
 // }
 
-// impl Actor for MsgRpc {
+// impl Actor for Grpc {
 //     type Context = Context<Self>;
 // }
 
-// #[derive(Default)]
-// pub struct RtcServer;
-
 // #[tonic::async_trait]
-// impl RtcMessage for RtcServer {
-//     type SendMessageStream = ();
-
-//     async fn send_message(
+// impl MsgBox for Grpc {
+//     async fn send_msg(
 //         &self,
-//         request: tonic::Request<crate::message::Mail>,
-//     ) -> Result<tonic::Response<Self::SendMessageStream>, tonic::Status> {
-//         todo!()
+//         request: tonic::Request<crate::message::Msg>,
+//     ) -> Result<tonic::Response<crate::message::MsgStatusEvent>, tonic::Status> {
+//         let msg = request.into();
 //     }
 
-//     async fn actor_message_state(
+//     async fn act_message_state(
 //         &self,
-//         request: tonic::Request<crate::message::MailEvent>,
-//     ) -> Result<tonic::Response<crate::message::MailEvent>, tonic::Status> {
+//         request: tonic::Request<crate::message::MsgStatusEvent>,
+//     ) -> Result<tonic::Response<crate::message::MsgStatusEvent>, tonic::Status> {
 //         todo!()
 //     }
 // }

@@ -2,16 +2,16 @@ syntax = "proto3";
 
 option java_multiple_files = true;
 option java_package = "com.warriorsfly.rtc";
-option java_outer_classname = "RtcMessage";
+option java_outer_classname = "MsgBox";
 
 package message;
 
-service RtcMessage{
-    rpc SendMessage(Mail) returns(stream MailEvent){}
-    rpc ActorMessageState(MailEvent) returns(MailEvent){}
+service MsgBox{
+    rpc SendMsg(Msg) returns(MessageAction){}
+    rpc ActMessageState(MessageAction) returns(MessageAction){}
 }
 
-message Mail{
+message Msg{
     string id = 1;
     // 发送者,暂时冗余吧
     string sender = 2;
@@ -22,9 +22,9 @@ message Mail{
     
 }
 
-message MailEvent{
+message MessageAction{
     //邮件id
-    string mail = 1;
+    string Message = 1;
     string sender = 2;
     //接收者,抄送者的id,应该是同一个表的,不需要区分角色
     repeated string receivers = 3;

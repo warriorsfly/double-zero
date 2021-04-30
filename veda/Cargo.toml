@@ -25,14 +25,14 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
 # for grpc
-tonic = "0.4"
-tonic-health = "0.3"
-prost = "0.7"
+# tonic = "0.4"
+# tonic-health = "0.3"
+# prost = "0.7"
 validator = { version = "0.13", features = ["derive"] }
 
 # for tonic,make .proto file generate .rs file
-[build-dependencies]
-tonic-build = "0.4"
+# [build-dependencies]
+# tonic-build = "0.4"
 
 [dev-dependencies]
 actix-rt = "2"
