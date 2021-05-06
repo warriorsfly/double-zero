@@ -29,11 +29,11 @@ pub async fn socket_route(
     )
 }
 
-pub async fn push_msg_route(
-    msg: Json<PushMessage>,
-    redis_addr: web::Data<Addr<Redis>>,
-    srv: web::Data<Addr<Websocket>>,
-) -> Result<MessageAction, Error> {
-    let ws_addr = srv.as_ref();
-    ws_addr.send(msg)
-}
+// pub async fn push_msg_route(
+//     msg: Json<PushMessage>,
+//     redis_addr: web::Data<Addr<Redis>>,
+//     srv: web::Data<Addr<Websocket>>,
+// ) -> Result<MessageAction, Error> {
+//     let ws_addr = srv.as_ref();
+//     ws_addr.send(msg)
+// }

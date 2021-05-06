@@ -1,3 +1,4 @@
 mod event;
 mod msg;
-pub use self::{event::*, msg::*};
+mod platform;
+pub use self::{event::*, msg::*, platform::*};

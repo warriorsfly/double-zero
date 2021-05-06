@@ -13,7 +13,7 @@ use super::WsMessage;
 
 use crate::{
     constants::{BLOCK_MILLIS, MESSAGE_INTERVAL},
-    entity::Event,
+    entity::{Event, Meister, Platform},
 };
 
 /// 用户上线消息,由websocket session发送到redis
@@ -25,6 +25,8 @@ pub struct Online {
     pub id: usize,
     /// 客户端名称
     pub name: String,
+    /// 设备
+    pub platform: Platform,
     /// socket session addr
     pub addr: Recipient<WsMessage>,
 }
@@ -61,6 +63,8 @@ impl Handler<Online> for Redis {
             .cli
             .get_connection()
             .expect("get redis connection error");
+        // let meister: RedisResult<Meister> = con.hkeys(key);
+
         let addr = RedisSession::new(msg.id, msg.name, con, msg.addr).start();
 
         self.sessions.insert(msg.id, addr.recipient());

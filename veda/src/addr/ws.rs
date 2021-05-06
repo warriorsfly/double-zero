@@ -192,14 +192,16 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebsocketSession 
                 let m = text.trim();
                 // we check for /sss type of messages
                 if m.starts_with('/') {
-                    let v: Vec<&str> = m.splitn(2, ' ').collect();
-                    if let "/name" = v[0] {
+                    let v: Vec<&str> = m.splitn(3, ' ').collect();
+                    if let "/login" = v[0] {
                         if v.len() == 2 {
                             let name = v[1].to_owned();
                             self.name = Some(name.clone());
+                            let device = serde_json::from_str(v[2]).expect("error device info");
                             self.redis_addr.do_send(Online {
                                 id: self.id,
                                 name: name.clone(),
+                                platform: device,
                                 addr: ctx.address().recipient(),
                             });
                         } else {
