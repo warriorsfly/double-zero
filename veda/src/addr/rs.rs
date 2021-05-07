@@ -13,7 +13,7 @@ use super::WsMessage;
 
 use crate::{
     constants::{BLOCK_MILLIS, MESSAGE_INTERVAL},
-    entity::{Event, Meister, Platform},
+    entity::{Event, Platform},
 };
 
 /// 用户上线消息,由websocket session发送到redis
@@ -23,9 +23,9 @@ use crate::{
 pub struct Online {
     /// websocket session id
     pub id: usize,
-    /// 客户端名称
+    /// logined username
     pub name: String,
-    /// 设备
+    /// device
     pub platform: Platform,
     /// socket session addr
     pub addr: Recipient<WsMessage>,
@@ -59,11 +59,15 @@ impl Handler<Online> for Redis {
 
     fn handle(&mut self, msg: Online, _ctx: &mut Self::Context) -> Self::Result {
         info!("start creating redis connection for `{}`", &msg.name);
-        let con = self
+        let key_platforms = format!(r#"platforms:{}"#, &msg.name);
+        let key_online_user = "online-users";
+        let mut con = self
             .cli
             .get_connection()
             .expect("get redis connection error");
-        // let meister: RedisResult<Meister> = con.hkeys(key);
+
+        let _: RedisResult<String> = con.hset(key_online_user, msg.id, msg.name.clone());
+        let _: RedisResult<Platform> = con.hset(key_platforms.as_str(), msg.id, msg.platform);
 
         let addr = RedisSession::new(msg.id, msg.name, con, msg.addr).start();
 
@@ -77,8 +81,23 @@ impl Handler<Offline> for Redis {
     fn handle(&mut self, msg: Offline, _: &mut Self::Context) -> Self::Result {
         info!("name:{} disconnected, offline redis session", &msg.id);
         if let Some(session_addr) = self.sessions.get(&msg.id) {
+            let key_online_user = "online-users:{}";
             let _ = session_addr.do_send(RedisOffline);
             self.sessions.remove(&msg.id);
+
+            let mut con = self
+                .cli
+                .get_connection()
+                .expect("get redis connection error");
+
+            let username: RedisResult<String> = con.hget(key_online_user, msg.id);
+            if let Ok(username) = username {
+                let _: RedisResult<String> = con.hdel(key_online_user, msg.id);
+                let key_platforms = format!(r#"platforms:{}"#, &username);
+                let _: RedisResult<Platform> = con.hdel(key_platforms.as_str(), msg.id);
+            }
+
+            let _: RedisResult<Platform> = con.hget(key_online_user, msg.id);
         }
     }
 }
