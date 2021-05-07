@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use redis::{FromRedisValue, ToRedisArgs};
 use serde::{Deserialize, Serialize};
 
