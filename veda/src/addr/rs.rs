@@ -1,6 +1,10 @@
-use std::{collections::HashMap, usize};
+use actix::{
+    dev::{MessageResponse, OneshotSender},
+    prelude::*,
+    Recipient,
+};
 
-use actix::{prelude::*, Recipient};
+use std::{collections::HashMap, usize};
 
 use log::info;
 use redis::streams::{StreamId, StreamInfoStreamReply, StreamReadOptions};
@@ -27,7 +31,7 @@ pub struct Online {
     pub name: String,
     /// device
     pub platform: Platform,
-    /// socket session addr
+    /// `socket` session addr
     pub addr: Recipient<WsMessage>,
 }
 
@@ -37,6 +41,27 @@ pub struct Offline {
     /// websocket session id
     pub id: usize,
 }
+
+/// 审判
+#[derive(Message)]
+#[rtype(result = "Vec<String>")]
+pub struct Trial {
+    pub message: String,
+    pub receivers: Vec<String>,
+}
+
+impl MessageResponse<Redis, Trial> for Vec<String> {
+    fn handle(
+        self,
+        _ctx: &mut <Redis as Actor>::Context,
+        tx: Option<OneshotSender<<Trial as Message>::Result>>,
+    ) {
+        if let Some(tx) = tx {
+            let _ = tx.send(self);
+        }
+    }
+}
+
 pub struct Redis {
     cli: Client,
     sessions: HashMap<usize, Recipient<RedisOffline>>,
@@ -52,6 +77,18 @@ impl Redis {
             sessions: HashMap::with_capacity(1),
         }
     }
+
+    pub fn key_platform(&self, username: &str) -> String {
+        format!("platforms:{}", username)
+    }
+
+    pub fn online_users(&self) -> &'static str {
+        "online-users"
+    }
+
+    pub fn stream_key(&self, username: &str) -> String {
+        format!("stream-messages:{}", username)
+    }
 }
 
 impl Handler<Online> for Redis {
@@ -59,15 +96,14 @@ impl Handler<Online> for Redis {
 
     fn handle(&mut self, msg: Online, _ctx: &mut Self::Context) -> Self::Result {
         info!("start creating redis connection for `{}`", &msg.name);
-        let key_platforms = format!(r#"platforms:{}"#, &msg.name);
-        let key_online_user = "online-users";
+
         let mut con = self
             .cli
             .get_connection()
             .expect("get redis connection error");
 
-        let _: RedisResult<String> = con.hset(key_online_user, msg.id, msg.name.clone());
-        let _: RedisResult<Platform> = con.hset(key_platforms.as_str(), msg.id, msg.platform);
+        let _: RedisResult<String> = con.hset(self.online_users(), msg.id, msg.name.clone());
+        let _: RedisResult<Platform> = con.hset(self.key_platform(&msg.name), msg.id, msg.platform);
 
         let addr = RedisSession::new(msg.id, msg.name, con, msg.addr).start();
 
@@ -81,7 +117,6 @@ impl Handler<Offline> for Redis {
     fn handle(&mut self, msg: Offline, _: &mut Self::Context) -> Self::Result {
         info!("name:{} disconnected, offline redis session", &msg.id);
         if let Some(session_addr) = self.sessions.get(&msg.id) {
-            let key_online_user = "online-users:{}";
             let _ = session_addr.do_send(RedisOffline);
             self.sessions.remove(&msg.id);
 
@@ -90,15 +125,39 @@ impl Handler<Offline> for Redis {
                 .get_connection()
                 .expect("get redis connection error");
 
-            let username: RedisResult<String> = con.hget(key_online_user, msg.id);
+            let username: RedisResult<String> = con.hget(self.online_users(), msg.id);
             if let Ok(username) = username {
-                let _: RedisResult<String> = con.hdel(key_online_user, msg.id);
-                let key_platforms = format!(r#"platforms:{}"#, &username);
-                let _: RedisResult<Platform> = con.hdel(key_platforms.as_str(), msg.id);
+                let _: RedisResult<String> = con.hdel(self.online_users(), msg.id);
+                let key_platforms = self.key_platform(&username);
+                let _: RedisResult<Platform> = con.hdel(key_platforms, msg.id);
             }
 
-            let _: RedisResult<Platform> = con.hget(key_online_user, msg.id);
+            let _: RedisResult<Platform> = con.hget(self.online_users(), msg.id);
         }
+    }
+}
+
+impl Handler<Trial> for Redis {
+    type Result = Vec<String>;
+
+    fn handle(&mut self, msg: Trial, _: &mut Self::Context) -> Self::Result {
+        let mut con = self
+            .cli
+            .get_connection()
+            .expect("get redis connection error");
+        let event: Result<Event, serde_json::Error> = serde_json::from_str(&msg.message);
+        let mut events = vec![];
+        if let Ok(event) = event {
+            for receiv in &msg.receivers {
+                let id: RedisResult<String> =
+                    con.xadd(self.stream_key(receiv), "*", &[("event", &event)]);
+
+                if let Ok(id) = id {
+                    events.push(id);
+                }
+            }
+        }
+        events
     }
 }
 

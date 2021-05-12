@@ -117,6 +117,7 @@ pub struct WebsocketSession {
     /// websocket addr
     pub redis_addr: Addr<Redis>,
     pub websocket_addr: Addr<Websocket>,
+    // pub grpc_addr: Option<Addr<Seravee>>,
 }
 
 impl Actor for WebsocketSession {

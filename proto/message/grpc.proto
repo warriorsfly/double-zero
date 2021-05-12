@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.warriorsfly";
+option java_outer_classname = "Message";
+
+package grpc;
+
+service Message{
+    rpc SendMsg(Msg) returns(RespMsg){}
+    rpc ActMsgState(MsgStatus
+    ) returns(MsgStatus
+    ){}
+}
+
+message Msg{
+    // 接收者
+    repeated string receivers = 1;
+    // 正文(可能有固定的标识字段类似于标定Json、Html、Xml之类的)
+    string content = 2;  
+}
+
+message RespMsg{
+
+    // 接收者
+    repeated MsgStatus states = 1;
+    
+}
+
+
+
+message MsgStatus{
+    //消息id
+    string message = 1;
+    //接收者
+    string receiver = 3;
+    /// 事件类型0缓存到stream,1消息被阅读,2消息被ack,100删除
+    int64 action = 4;
+    //事件时间
+    int64 expire_at = 5;
+}

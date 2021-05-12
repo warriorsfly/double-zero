@@ -1,5 +1,5 @@
-mod grpc;
 mod rs;
+mod seravee;
 mod ws;
 
 use crate::config::CONFIG;
@@ -7,7 +7,10 @@ use actix::{Actor, Addr};
 use actix_web::web;
 use redis::Client;
 
+use self::seravee::Seravee;
 pub(crate) use self::{rs::*, ws::*};
+
+pub struct Exia {}
 
 fn init_redis(redis_url: &str) -> Addr<Redis> {
     let cli = Client::open(redis_url)
@@ -24,10 +27,3 @@ pub fn add_websocket(cfg: &mut web::ServiceConfig) {
     let addr = Websocket::default().start();
     cfg.data(addr);
 }
-
-// pub async fn init_rpc(rpc_url: &'static str) -> MsgRpc {
-//     let cli = RtcMessageClient::connect(rpc_url)
-//         .await
-//         .expect(format!("unable to connect to grpc:{}", rpc_url).as_str());
-//     MsgRpc { cli }
-// }

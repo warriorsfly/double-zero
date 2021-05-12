@@ -1,4 +1,4 @@
-use redis::FromRedisValue;
+use redis::{FromRedisValue, ToRedisArgs};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize)]
@@ -9,6 +9,34 @@ pub struct Event {
     pub act: String,
     /// any one
     pub object: String,
+}
+
+impl ToRedisArgs for Event {
+    fn write_redis_args<W>(&self, out: &mut W)
+    where
+        W: ?Sized + redis::RedisWrite,
+    {
+        "subject".write_redis_args(out);
+        out.write_arg(&self.subject.as_bytes());
+        "act".write_redis_args(out);
+        out.write_arg(&self.act.as_bytes());
+        "object".write_redis_args(out);
+        out.write_arg(&self.object.as_bytes());
+    }
+}
+
+impl ToRedisArgs for &Event {
+    fn write_redis_args<W>(&self, out: &mut W)
+    where
+        W: ?Sized + redis::RedisWrite,
+    {
+        "subject".write_redis_args(out);
+        out.write_arg(&self.subject.as_bytes());
+        "act".write_redis_args(out);
+        out.write_arg(&self.act.as_bytes());
+        "object".write_redis_args(out);
+        out.write_arg(&self.object.as_bytes());
+    }
 }
 
 impl FromRedisValue for Event {
