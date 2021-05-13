@@ -24,13 +24,13 @@ pub async fn serv() -> std::io::Result<()> {
     };
 
     let seravee_addr = seravee.clone().start();
-
-    tokio::spawn(async move {
+    actix_web::rt::spawn(async move {
         let _ = Server::builder()
             .add_service(MessageServer::new(seravee))
             .serve(addr)
             .await;
     });
+
     HttpServer::new(move || {
         App::new()
             .wrap(Logger::default())
