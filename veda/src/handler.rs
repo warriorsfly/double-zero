@@ -1,10 +1,7 @@
-use crate::{
-    addr::{Redis, Websocket, WebsocketSession},
-    entity::{MessageAction, PushMessage},
-};
+use crate::addr::{Redis, Seravee, Websocket, WebsocketSession};
 use actix::Addr;
 use actix_web::{
-    web::{self, Json},
+    web::{self},
     Error, HttpRequest, HttpResponse,
 };
 use actix_web_actors::ws;
@@ -13,6 +10,7 @@ use std::time::Instant;
 pub async fn socket_route(
     req: HttpRequest,
     stream: web::Payload,
+    grpc_addr: web::Data<Addr<Seravee>>,
     redis_addr: web::Data<Addr<Redis>>,
     srv: web::Data<Addr<Websocket>>,
 ) -> Result<HttpResponse, Error> {
@@ -23,7 +21,7 @@ pub async fn socket_route(
             hb: Instant::now(),
             redis_addr: redis_addr.get_ref().clone(),
             websocket_addr: srv.get_ref().clone(),
-            // grpc_addr: None,
+            grpc_addr: grpc_addr.get_ref().clone(),
         },
         &req,
         stream,

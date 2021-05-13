@@ -1,3 +1,5 @@
+use std::net::SocketAddr;
+
 use actix::{Actor, Context, Recipient};
 use chrono::Utc;
 use tonic::Code;
@@ -5,9 +7,10 @@ use tonic::Code;
 use super::Trial;
 use crate::grpc::{message_server::Message, Msg, MsgStatus, RespMsg};
 
-// #[derive(Default)]
+#[derive(Clone)]
 pub struct Seravee {
-    redis_addr: Recipient<Trial>,
+    pub addr: SocketAddr,
+    pub redis_addr: Recipient<Trial>,
 }
 
 impl Actor for Seravee {

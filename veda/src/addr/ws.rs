@@ -7,7 +7,7 @@ use std::{collections::HashMap, time::Instant};
 
 use crate::constants::{CLIENT_TIMEOUT, HEARTBEAT_INTERVAL};
 
-use super::{Offline, Online, Redis};
+use super::{Offline, Online, Redis, Seravee};
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct WsMessage(pub String);
@@ -117,7 +117,7 @@ pub struct WebsocketSession {
     /// websocket addr
     pub redis_addr: Addr<Redis>,
     pub websocket_addr: Addr<Websocket>,
-    // pub grpc_addr: Option<Addr<Seravee>>,
+    pub grpc_addr: Addr<Seravee>,
 }
 
 impl Actor for WebsocketSession {
