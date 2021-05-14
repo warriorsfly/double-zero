@@ -35,8 +35,8 @@ impl Message for Seravee {
                 let msgs: Vec<MsgStatus> = ids
                     .into_iter()
                     .map(|str| MsgStatus {
-                        message: str.to_owned(),
-                        receiver: "".to_string(),
+                        message: str.to_owned().1,
+                        receiver: str.to_owned().0,
                         action: 0,
                         expire_at: Utc::now().timestamp(),
                     })

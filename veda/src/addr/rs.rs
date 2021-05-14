@@ -44,13 +44,13 @@ pub struct Offline {
 
 /// 审判
 #[derive(Message)]
-#[rtype(result = "Vec<String>")]
+#[rtype(result = "Vec<(String, String)>")]
 pub struct Trial {
     pub message: String,
     pub receivers: Vec<String>,
 }
 
-impl MessageResponse<Redis, Trial> for Vec<String> {
+impl MessageResponse<Redis, Trial> for Vec<(String, String)> {
     fn handle(
         self,
         _ctx: &mut <Redis as Actor>::Context,
@@ -138,7 +138,7 @@ impl Handler<Offline> for Redis {
 }
 
 impl Handler<Trial> for Redis {
-    type Result = Vec<String>;
+    type Result = Vec<(String, String)>;
 
     fn handle(&mut self, msg: Trial, _: &mut Self::Context) -> Self::Result {
         let mut con = self
@@ -153,7 +153,7 @@ impl Handler<Trial> for Redis {
                     con.xadd(self.stream_key(receiv), "*", &[("event", &event)]);
 
                 if let Ok(id) = id {
-                    events.push(id);
+                    events.push((receiv.to_string(), id));
                 }
             }
         }
