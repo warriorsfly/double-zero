@@ -9,7 +9,7 @@ services:
   #     - NGINX_HOST=walking.com
   #     - NGINX_PORT=80
   veda:
-    image: warriorsfly/veda
+    image: celestialbeing13/veda
     container_name: veda
     ports:
       - "3000:3000"
@@ -20,7 +20,7 @@ services:
     depends_on:
       - redis
     volumes:
-      - actix_websocket_data:/var/lib/actix_web/data
+      - veda_data:/var/lib/veda/data
 
   redis:
     image: redis:alpine

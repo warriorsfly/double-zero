@@ -18,6 +18,6 @@ RUN cargo build --release
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates
 COPY --from=builder \
-    /home/rust/src/target/x86_64-unknown-linux-musl/release/actix-websocket \
+    /home/rust/src/target/x86_64-unknown-linux-musl/release/veda \
     /usr/local/bin/
-CMD /usr/local/bin/actix-websocket
+CMD /usr/local/bin/veda
