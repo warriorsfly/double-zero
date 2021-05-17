@@ -149,8 +149,7 @@ impl Handler<Trial> for Redis {
         let mut events = vec![];
         if let Ok(event) = event {
             for receiv in &msg.receivers {
-                let id: RedisResult<String> =
-                    con.xadd(self.stream_key(receiv), "*", &[("event", &event)]);
+                let id: RedisResult<String> = con.xadd_map(self.stream_key(receiv), "*", &event);
 
                 if let Ok(id) = id {
                     events.push((receiv.to_string(), id));

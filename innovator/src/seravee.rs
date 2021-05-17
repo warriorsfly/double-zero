@@ -10,7 +10,7 @@ mod tests {
             .expect("error connection");
 
         let request = tonic::Request::new(Msg {
-            content: "Hi, I'm allen".to_string(),
+            content: "{\"subject\":\"Allen\",\"act\":\"love\",\"object\":\"rust\"}".to_string(),
             receivers: vec!["gandum".to_string(), "00".to_string()],
         });
 
