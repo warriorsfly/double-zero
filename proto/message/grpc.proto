@@ -21,10 +21,8 @@ message Msg{
 }
 
 message RespMsg{
-
     // 接收者
     repeated MsgStatus states = 1;
-    
 }
 
 
