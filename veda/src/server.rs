@@ -8,7 +8,7 @@ use tonic::transport::Server;
 use crate::{
     addr::{add_websocket, init_redis, Seravee},
     config::CONFIG,
-    grpc::message_server::MessageServer,
+    grpc::message_source_server::MessageSourceServer,
     handler::socket_route,
 };
 
@@ -26,7 +26,7 @@ pub async fn serv() -> std::io::Result<()> {
     let seravee_addr = seravee.clone().start();
     actix_web::rt::spawn(async move {
         let _ = Server::builder()
-            .add_service(MessageServer::new(seravee))
+            .add_service(MessageSourceServer::new(seravee))
             .serve(addr)
             .await;
     });

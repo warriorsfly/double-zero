@@ -17,7 +17,7 @@ use super::WsMessage;
 
 use crate::{
     constants::{BLOCK_MILLIS, MESSAGE_INTERVAL},
-    entity::{Event, Platform},
+    entity::{Event, MessageFlow, Platform},
 };
 
 /// 用户上线消息,由websocket session发送到redis
@@ -46,7 +46,7 @@ pub struct Offline {
 #[derive(Message)]
 #[rtype(result = "Vec<(String, String)>")]
 pub struct Trial {
-    pub message: String,
+    pub message: MessageFlow,
     pub receivers: Vec<String>,
 }
 
@@ -145,17 +145,16 @@ impl Handler<Trial> for Redis {
             .cli
             .get_connection()
             .expect("get redis connection error");
-        let event: Result<Event, serde_json::Error> = serde_json::from_str(&msg.message);
         let mut events = vec![];
-        if let Ok(event) = event {
-            for receiv in &msg.receivers {
-                let id: RedisResult<String> = con.xadd_map(self.stream_key(receiv), "*", &event);
 
-                if let Ok(id) = id {
-                    events.push((receiv.to_string(), id));
-                }
+        for receiv in &msg.receivers {
+            let id: RedisResult<String> = con.xadd_map(self.stream_key(receiv), "*", &msg.message);
+
+            if let Ok(id) = id {
+                events.push((receiv.to_string(), id));
             }
         }
+
         events
     }
 }

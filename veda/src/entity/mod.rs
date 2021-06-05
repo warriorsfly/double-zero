@@ -1,4 +1,3 @@
-mod event;
-mod msg;
+mod message_flow;
 mod platform;
-pub use self::{event::*, msg::*, platform::*};
+pub use self::{message_flow::*, platform::*};
