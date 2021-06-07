@@ -2,35 +2,35 @@ syntax = "proto3";
 
 option java_multiple_files = true;
 option java_package = "com.warriorsfly";
-option java_outer_classname = "MessageFlow";
+option java_outer_classname = "Activity";
 
-package grpc;
+package activity;
 
-service MessageSource{
-    rpc SendFlow(FlowResource) returns(FlowAction){}
-    rpc ActFlow(FlowStatus) returns(FlowStatus){}
+service ActivitySource{
+    rpc Active(Message) returns(States){}
+    rpc ActFlow(Status) returns(Status){}
 }
 
-message FlowResource{
+message Message{
     // 接收者
     repeated string receivers = 1;
     // 正文(可能有固定的标识字段类似于标定Json、Html、Xml之类的)
-    MessageFlow message = 2;  
+    Activity message = 2;  
 }
 
-message FlowAction{
+message States{
     // 接收者
-    repeated FlowStatus states = 1;
+    repeated Status states = 1;
 }
 
-message MessageFlow{
-    string flow_type=1;
+message Activity{
+    string activity_type=1;
     string content=2;
 }
 
 
 
-message FlowStatus{
+message Status{
     //消息id
     string message = 1;
     //接收者

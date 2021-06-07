@@ -17,7 +17,7 @@ use super::WsMessage;
 
 use crate::{
     constants::{BLOCK_MILLIS, MESSAGE_INTERVAL},
-    entity::{Event, MessageFlow, Platform},
+    entity::{Activity, Platform},
 };
 
 /// 用户上线消息,由websocket session发送到redis
@@ -46,7 +46,7 @@ pub struct Offline {
 #[derive(Message)]
 #[rtype(result = "Vec<(String, String)>")]
 pub struct Trial {
-    pub message: MessageFlow,
+    pub message: Activity,
     pub receivers: Vec<String>,
 }
 
@@ -223,12 +223,11 @@ impl RedisSession {
                     .xread_options(&[&self.stream_name], &["0"], opts);
             if let Ok(ssr) = ssr {
                 for StreamKey { key, ids } in ssr.keys {
-                    let items: Vec<Event> = ids
+                    let items: Vec<Activity> = ids
                         .iter()
-                        .map(|t| Event {
-                            subject: t.get("subject").unwrap_or_default(),
-                            act: t.get("act").unwrap_or_default(),
-                            object: t.get("object").unwrap_or_default(),
+                        .map(|t| Activity {
+                            activity_type: t.get("activity_type").unwrap_or_default(),
+                            activity: t.get("activity").unwrap_or_default(),
                         })
                         .collect();
                     let res = serde_json::to_string(&items);

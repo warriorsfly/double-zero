@@ -1,3 +1,3 @@
-mod message_flow;
+mod activity;
 mod platform;
-pub use self::{message_flow::*, platform::*};
+pub use self::{activity::*, platform::*};

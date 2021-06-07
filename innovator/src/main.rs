@@ -8,8 +8,8 @@ mod entity;
 mod handler;
 mod seravee;
 mod server;
-pub mod grpc {
-    tonic::include_proto!("grpc");
+pub mod activity {
+    tonic::include_proto!("activity");
 }
 
 fn main() {
