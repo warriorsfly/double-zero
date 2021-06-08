@@ -7,7 +7,7 @@ pub struct Activity {
     pub activity: String,
 }
 
-impl ToRedisArgs for Activity {
+impl ToRedisArgs for &Activity {
     fn write_redis_args<W>(&self, out: &mut W)
     where
         W: ?Sized + redis::RedisWrite,
@@ -19,14 +19,14 @@ impl ToRedisArgs for Activity {
     }
 }
 
-impl ToRedisArgs for &Activity {
-    fn write_redis_args<W>(&self, out: &mut W)
-    where
-        W: ?Sized + redis::RedisWrite,
-    {
-        &self.write_redis_args(out);
-    }
-}
+// impl ToRedisArgs for &Activity {
+//     fn write_redis_args<W>(self, out: &mut W)
+//     where
+//         W: ?Sized + redis::RedisWrite,
+//     {
+//         &self.write_redis_args(out);
+//     }
+// }
 
 impl FromRedisValue for Activity {
     fn from_redis_value(v: &redis::Value) -> redis::RedisResult<Activity> {
