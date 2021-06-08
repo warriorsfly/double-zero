@@ -37,7 +37,7 @@ pub async fn serv() -> std::io::Result<()> {
             .configure(add_websocket)
             .data(redis_addr.clone())
             .data(seravee_addr.clone())
-            .service(web::resource("/vp/").to(socket_route))
+            .service(web::resource("/ws/").to(socket_route))
     })
     .bind(&CONFIG.server)?
     .run()

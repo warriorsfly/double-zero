@@ -14,38 +14,39 @@ use bytes::Bytes;
 use futures::stream::{SplitSink, StreamExt};
 
 #[actix::main]
-async fn main() {
-    ::std::env::set_var("RUST_LOG", "actix_web=info");
+async fn main() -> std::io::Result<()> {
+    std::env::set_var("RUST_LOG", "actix_web=info");
     env_logger::init();
 
-    let arb = Arbiter::new();
-    arb.spawn_fn({
-        let (response, framed) = Client::new()
-            .ws("http://127.0.0.1:3000/ws/")
-            .connect()
-            .await
-            .map_err(|e| {
-                println!("Error: {}", e);
-            })
-            .unwrap();
+    let (response, framed) = Client::new()
+        .ws("http://127.0.0.1:3000/ws/")
+        .connect()
+        .await
+        .map_err(|e| {
+            println!("Error: {}", e);
+        })
+        .unwrap();
 
-        println!("{:?}", response);
-        let (sink, stream) = framed.split();
-        let addr = ChatClient::create(|ctx| {
-            ChatClient::add_stream(stream, ctx);
-            ChatClient(SinkWrite::new(sink, ctx))
-        });
-
-        // start console loop
-        thread::spawn(move || loop {
-            let mut cmd = String::new();
-            if io::stdin().read_line(&mut cmd).is_err() {
-                println!("error");
-                return;
-            }
-            addr.do_send(WebsocketCommand(cmd));
-        });
+    println!("{:?}", response);
+    let (sink, stream) = framed.split();
+    let addr = ChatClient::create(|ctx| {
+        ChatClient::add_stream(stream, ctx);
+        ChatClient(SinkWrite::new(sink, ctx))
     });
+
+    // start console loop
+    thread::spawn(move || loop {
+        let mut cmd = String::new();
+        if io::stdin().read_line(&mut cmd).is_err() {
+            println!("error");
+            return;
+        }
+        addr.do_send(WebsocketCommand(cmd));
+    });
+    tokio::signal::ctrl_c().await.unwrap();
+    println!("🎩 Ctrl-C received, shutting down");
+    System::current().stop();
+    Ok(())
 }
 
 struct ChatClient(SinkWrite<Message, SplitSink<Framed<BoxedSocket, Codec>, Message>>);

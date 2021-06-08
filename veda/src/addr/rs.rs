@@ -29,10 +29,21 @@ pub struct Online {
     pub id: usize,
     /// logined username
     pub name: String,
-    /// device
-    pub platform: Platform,
     /// `socket` session addr
     pub addr: Recipient<WsMessage>,
+}
+
+/// 用户上线消息,由websocket session发送到redis
+/// redis 接收到online
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct PlatformOnline {
+    /// websocket session id
+    pub id: usize,
+    /// logined username
+    pub name: String,
+    /// device
+    pub platform: Platform,
 }
 
 #[derive(Message)]
@@ -77,17 +88,17 @@ impl Redis {
             sessions: HashMap::with_capacity(1),
         }
     }
-
+    /// 用户的设备hset
     pub fn key_platform(&self, username: &str) -> String {
         format!("platforms:{}", username)
     }
-
-    pub fn online_users(&self) -> &'static str {
+    /// 在线用户hset
+    pub fn hset_online_users(&self) -> &'static str {
         "online-users"
     }
-
-    pub fn stream_key(&self, username: &str) -> String {
-        format!("stream-messages:{}", username)
+    /// 消息队列
+    pub fn key_activity(&self, username: &str) -> String {
+        format!("veda-activity:{}", username)
     }
 }
 
@@ -102,12 +113,33 @@ impl Handler<Online> for Redis {
             .get_connection()
             .expect("get redis connection error");
 
-        let _: RedisResult<String> = con.hset(self.online_users(), msg.id, msg.name.clone());
-        let _: RedisResult<Platform> = con.hset(self.key_platform(&msg.name), msg.id, msg.platform);
+        let _: RedisResult<String> = con.hset(self.hset_online_users(), msg.id, msg.name.clone());
 
-        let addr = RedisSession::new(msg.id, msg.name, con, msg.addr).start();
+        let addr = RedisSession::new(
+            msg.id,
+            msg.name.clone(),
+            self.key_activity(&msg.name.as_str()),
+            con,
+            msg.addr,
+        )
+        .start();
 
         self.sessions.insert(msg.id, addr.recipient());
+    }
+}
+
+impl Handler<PlatformOnline> for Redis {
+    type Result = ();
+
+    fn handle(&mut self, msg: PlatformOnline, _ctx: &mut Self::Context) -> Self::Result {
+        info!("start creating redis connection for `{}`", &msg.name);
+
+        let mut con = self
+            .cli
+            .get_connection()
+            .expect("get redis connection error");
+
+        let _: RedisResult<Platform> = con.hset(self.key_platform(&msg.name), msg.id, msg.platform);
     }
 }
 
@@ -125,14 +157,14 @@ impl Handler<Offline> for Redis {
                 .get_connection()
                 .expect("get redis connection error");
 
-            let username: RedisResult<String> = con.hget(self.online_users(), msg.id);
+            let username: RedisResult<String> = con.hget(self.hset_online_users(), msg.id);
             if let Ok(username) = username {
-                let _: RedisResult<String> = con.hdel(self.online_users(), msg.id);
+                let _: RedisResult<String> = con.hdel(self.hset_online_users(), msg.id);
                 let key_platforms = self.key_platform(&username);
                 let _: RedisResult<Platform> = con.hdel(key_platforms, msg.id);
             }
 
-            let _: RedisResult<Platform> = con.hget(self.online_users(), msg.id);
+            let _: RedisResult<Platform> = con.hget(self.hset_online_users(), msg.id);
         }
     }
 }
@@ -148,7 +180,8 @@ impl Handler<Trial> for Redis {
         let mut events = vec![];
 
         for receiv in &msg.receivers {
-            let id: RedisResult<String> = con.xadd_map(self.stream_key(receiv), "*", &msg.message);
+            let id: RedisResult<String> =
+                con.xadd_map(self.key_activity(receiv), "*", &msg.message);
 
             if let Ok(id) = id {
                 events.push((receiv.to_string(), id));
@@ -192,13 +225,14 @@ impl RedisSession {
     pub fn new(
         id: usize,
         name: String,
+        stream_name: String,
         connection: Connection,
         websocket_addr: Recipient<WsMessage>,
     ) -> Self {
         Self {
             id,
-            name: name.clone(),
-            stream_name: format!("stream-messages:{}", &name),
+            name,
+            stream_name,
             session_addr: connection,
             websocket_addr,
         }
