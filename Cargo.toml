@@ -3,8 +3,8 @@ members = [
    # 高达00 变革者
    "innovator",
    # 高达00 量子计算机
-   "veda"
+   "veda",
    # for test
-   # "actix-websocket-client",
+   "actix-websocket-client",
    
 ]

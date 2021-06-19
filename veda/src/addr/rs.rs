@@ -20,59 +20,6 @@ use crate::{
     entity::{Activity, Platform},
 };
 
-/// 用户上线消息,由websocket session发送到redis
-/// redis 接收到online
-#[derive(Message)]
-#[rtype(result = "()")]
-pub struct Online {
-    /// websocket session id
-    pub id: usize,
-    /// logined username
-    pub name: String,
-    /// `socket` session addr
-    pub addr: Recipient<WsMessage>,
-}
-
-/// 用户上线消息,由websocket session发送到redis
-/// redis 接收到online
-#[derive(Message)]
-#[rtype(result = "()")]
-pub struct PlatformOnline {
-    /// websocket session id
-    pub id: usize,
-    /// logined username
-    pub name: String,
-    /// device
-    pub platform: Platform,
-}
-
-#[derive(Message)]
-#[rtype(result = "()")]
-pub struct Offline {
-    /// websocket session id
-    pub id: usize,
-}
-
-/// 审判
-#[derive(Message)]
-#[rtype(result = "Vec<(String, String)>")]
-pub struct Trial {
-    pub message: Activity,
-    pub receivers: Vec<String>,
-}
-
-impl MessageResponse<Redis, Trial> for Vec<(String, String)> {
-    fn handle(
-        self,
-        _ctx: &mut <Redis as Actor>::Context,
-        tx: Option<OneshotSender<<Trial as Message>::Result>>,
-    ) {
-        if let Some(tx) = tx {
-            let _ = tx.send(self);
-        }
-    }
-}
-
 pub struct Redis {
     cli: Client,
     sessions: HashMap<usize, Recipient<RedisOffline>>,
@@ -287,6 +234,59 @@ impl RedisSession {
                     }
                 }
             }
+        }
+    }
+}
+
+/// 用户上线消息,由websocket session发送到redis
+/// redis 接收到online
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct Online {
+    /// websocket session id
+    pub id: usize,
+    /// logined username
+    pub name: String,
+    /// `socket` session addr
+    pub addr: Recipient<WsMessage>,
+}
+
+/// 用户上线消息,由websocket session发送到redis
+/// redis 接收到online
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct PlatformOnline {
+    /// websocket session id
+    pub id: usize,
+    /// logined username
+    pub name: String,
+    /// device
+    pub platform: Platform,
+}
+
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct Offline {
+    /// websocket session id
+    pub id: usize,
+}
+
+/// 审判
+#[derive(Message)]
+#[rtype(result = "Vec<(String, String)>")]
+pub struct Trial {
+    pub message: Activity,
+    pub receivers: Vec<String>,
+}
+
+impl MessageResponse<Redis, Trial> for Vec<(String, String)> {
+    fn handle(
+        self,
+        _ctx: &mut <Redis as Actor>::Context,
+        tx: Option<OneshotSender<<Trial as Message>::Result>>,
+    ) {
+        if let Some(tx) = tx {
+            let _ = tx.send(self);
         }
     }
 }

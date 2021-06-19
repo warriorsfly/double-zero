@@ -1,12 +1,10 @@
 use std::time::Duration;
 
-use redis::streams::StreamMaxlen;
-
 /// js toISOString() in test suit can't handle chrono's default precision
-pub const DATE_FORMAT: &str = "%Y-%m-%dT%H:%M:%S%.3fZ";
+//pub const DATE_FORMAT: &str = "%Y-%m-%dT%H:%M:%S%.3fZ";
 
 /// max len of redis stream for each key is 1000
-pub const MAXLEN: StreamMaxlen = StreamMaxlen::Approx(1000);
+//pub const MAXLEN: StreamMaxlen = StreamMaxlen::Approx(1000);
 
 /// blocking message time milliseconds
 pub const BLOCK_MILLIS: usize = 600;
