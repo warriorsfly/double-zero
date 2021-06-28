@@ -65,8 +65,10 @@ impl ActivitySource for Seravee {
 
     async fn act_flow(
         &self,
-        request: tonic::Request<activity::Status>,
+        _request: tonic::Request<activity::Status>,
     ) -> Result<tonic::Response<activity::Status>, tonic::Status> {
         todo!()
     }
+
+  
 }

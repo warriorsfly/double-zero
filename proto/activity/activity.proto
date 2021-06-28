@@ -9,6 +9,8 @@ package activity;
 service ActivitySource{
     rpc Active(Message) returns(States){}
     rpc ActFlow(Status) returns(Status){}
+    // rpc ActStream(stream Status) returns(stream Status){}
+
 }
 
 message Message{

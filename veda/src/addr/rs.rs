@@ -1,8 +1,4 @@
-use actix::{
-    dev::{MessageResponse, OneshotSender},
-    prelude::*,
-    Recipient,
-};
+use actix::{prelude::*, Recipient};
 
 use std::{collections::HashMap, usize};
 
@@ -277,16 +273,4 @@ pub struct Offline {
 pub struct Trial {
     pub message: Activity,
     pub receivers: Vec<String>,
-}
-
-impl MessageResponse<Redis, Trial> for Vec<(String, String)> {
-    fn handle(
-        self,
-        _ctx: &mut <Redis as Actor>::Context,
-        tx: Option<OneshotSender<<Trial as Message>::Result>>,
-    ) {
-        if let Some(tx) = tx {
-            let _ = tx.send(self);
-        }
-    }
 }

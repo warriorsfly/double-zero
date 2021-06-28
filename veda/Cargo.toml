@@ -6,9 +6,9 @@ authors = ["walker <warriorsfly@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-actix = "0.11.1"
-actix-web = "4.0.0-beta.7"
-actix-web-actors = "4.0.0-beta.5"
+actix = "0.12"
+actix-web = "4.0.0-beta.8"
+actix-web-actors = "4.0.0-beta.6"
 
 chrono ={version = "0.4",features = ["serde"]}
 # config and log
