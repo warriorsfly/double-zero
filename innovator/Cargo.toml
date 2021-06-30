@@ -21,7 +21,7 @@ futures = "0.3"
 lazy_static = "1"
 log = "0.4"
 rand= "0.8"
-
+rusted_cypher = "1"
 # for serialize
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

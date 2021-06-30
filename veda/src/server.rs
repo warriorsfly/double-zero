@@ -2,7 +2,11 @@ use std::net::SocketAddr;
 
 use actix::Actor;
 
-use actix_web::{middleware::Logger, web, App, HttpServer};
+use actix_web::{
+    middleware::Logger,
+    web::{self, Data},
+    App, HttpServer,
+};
 use tonic::transport::Server;
 
 use crate::{
@@ -35,8 +39,8 @@ pub async fn serv() -> std::io::Result<()> {
         App::new()
             .wrap(Logger::default())
             .configure(add_websocket)
-            .data(redis_addr.clone())
-            .data(seravee_addr.clone())
+            .app_data(Data::new(redis_addr.clone()))
+            .app_data(Data::new(seravee_addr.clone()))
             .service(web::resource("/ws/").to(socket_route))
     })
     .bind(&CONFIG.server)?
