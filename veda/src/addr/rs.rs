@@ -142,6 +142,7 @@ pub struct RedisSession {
     pub id: usize,
     pub name: String,
     stream_name: String,
+    opts: StreamReadOptions,
     pub session_addr: Connection,
     pub websocket_addr: Recipient<WsMessage>,
 }
@@ -176,6 +177,7 @@ impl RedisSession {
             id,
             name,
             stream_name,
+            opts: StreamReadOptions::default().block(BLOCK_MILLIS).count(10),
             session_addr: connection,
             websocket_addr,
         }
@@ -192,12 +194,11 @@ impl RedisSession {
             if inf.length == 0 {
                 return;
             }
-            let opts = StreamReadOptions::default().block(BLOCK_MILLIS).count(10);
 
             // read all messages in the stream
             let ssr: RedisResult<StreamReadReply> =
                 self.session_addr
-                    .xread_options(&[&self.stream_name], &["0"], opts);
+                    .xread_options(&[&self.stream_name], &["0"], &self.opts);
             if let Ok(ssr) = ssr {
                 for StreamKey { key, ids } in ssr.keys {
                     let items: Vec<Activity> = ids
