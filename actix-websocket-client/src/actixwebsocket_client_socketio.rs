@@ -23,7 +23,7 @@ async fn main() -> std::io::Result<()> {
     let lines: Vec<&str> = f.split('\n').collect();
     for line in lines {
         let (response, framed) = Client::new()
-            .ws("http://172.17.1.53:20000/socket.io/?EIO=3&transport=websocket&secretKey=winning")
+            .ws("http://172.17.25.30:20000/socket.io/?EIO=3&transport=websocket&secretKey=winning")
             .connect()
             .await
             .map_err(|e| {
