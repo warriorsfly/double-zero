@@ -2,17 +2,17 @@
 name = "actix-websocket-client"
 version = "0.1.0"
 authors = ["walker <warriorsfly@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 actix = "0.12"
-actix-web = "4.0.0-beta.9"
+actix-web = "4.0.0-beta.10"
 actix-web-actors = "4.0.0-beta.7"
-# actix-codec = "0.4.0-beta.1"
+actix-codec = "0.4"
 # actix-files = "0.6.0-beta.5"
-awc = "3.0.0-beta.8"
+awc = "3.0.0-beta.9"
 base64 = "0.13"
 env_logger = "0.9"
 futures = "0.3"

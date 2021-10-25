@@ -2,7 +2,7 @@
 members = [
    # 高达00 变革者
    "innovator",
-   # 高达00 量子计算机
+   # 高达00 量子计算机[吠陀]
    "veda",
    # for test
    "actix-websocket-client",
