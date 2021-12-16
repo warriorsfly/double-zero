@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 actix = "0.12"
-actix-web = "4.0.0-beta.10"
+actix-web = "4.0.0-beta.13"
 actix-web-actors = "4.0.0-beta.7"
 
 chrono ={version = "0.4",features = ["serde"]}
@@ -37,5 +37,4 @@ validator = { version = "0.14", features = ["derive"] }
 tonic-build = "0.6"
 
 [dev-dependencies]
-actix-rt = "2"
 futures-util = { version = "0.3", default-features = false }
