@@ -74,7 +74,7 @@ impl Actor for ChatClient {
 impl ChatClient {
     fn hb(&self, ctx: &mut Context<Self>) {
         ctx.run_later(Duration::new(120, 0), |act, ctx| {
-            act.0.write(Message::Ping(Bytes::from_static(b"")));
+            let _ = act.0.write(Message::Ping(Bytes::from_static(b"")));
             act.hb(ctx);
 
             // client should also check for a timeout here, similar to the

@@ -9,8 +9,8 @@ edition = "2021"
 [dependencies]
 
 actix = "0.12"
-actix-web = "4.0.0-beta.12"
-actix-web-actors = "4.0.0-beta.7"
+actix-web = "4.0.0-beta.15"
+actix-web-actors = "4.0.0-beta.8"
 
 chrono ={version = "0.4",features = ["serde"]}
 # config and log

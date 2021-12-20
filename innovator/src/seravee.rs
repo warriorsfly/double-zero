@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
 
-    #[actix_rt::test]
+    #[actix_web::test]
     async fn request_msg() -> std::io::Result<()> {
         use crate::activity::{self, activity_source_client::ActivitySourceClient};
 

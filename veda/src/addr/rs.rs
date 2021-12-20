@@ -50,7 +50,7 @@ impl Handler<Online> for Redis {
 
     fn handle(&mut self, msg: Online, _ctx: &mut Self::Context) -> Self::Result {
         info!("start creating redis connection for `{}`", &msg.name);
-
+        
         let mut con = self
             .cli
             .get_connection()
