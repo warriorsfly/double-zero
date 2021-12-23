@@ -19,7 +19,7 @@ futures = "0.3"
 lazy_static = "1"
 log = "0.4"
 rand= "0.8"
-redis = "0.21"
+redis = { version = "0.21", features = ["tokio-native-tls-comp"] }
 
 # for serialize
 serde = { version = "1", features = ["derive"] }

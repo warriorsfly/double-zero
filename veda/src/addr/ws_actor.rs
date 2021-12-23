@@ -10,7 +10,7 @@ use crate::{
     constants::{CLIENT_TIMEOUT, HEARTBEAT_INTERVAL},
 };
 
-use super::{Offline, Online, Redis, Seravee};
+use super::{Offline, Online, Redis, Bridge};
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct WsMessage(pub String);
@@ -120,7 +120,7 @@ pub struct WebsocketSession {
     /// websocket addr
     pub redis_addr: Addr<Redis>,
     pub websocket_addr: Addr<Websocket>,
-    pub grpc_addr: Addr<Seravee>,
+    pub grpc_addr: Addr<Bridge>,
 }
 
 impl Actor for WebsocketSession {
@@ -156,9 +156,9 @@ impl Actor for WebsocketSession {
 
     fn stopping(&mut self, _: &mut Self::Context) -> Running {
         // notify redis server
-        &self.redis_addr.do_send(Offline { id: self.id });
+        let _ = &self.redis_addr.do_send(Offline { id: self.id });
         // notify socket server
-        &self.websocket_addr.do_send(Disconnect { id: self.id });
+        let _ = &self.websocket_addr.do_send(Disconnect { id: self.id });
         Running::Stop
     }
 }

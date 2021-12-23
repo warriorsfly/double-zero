@@ -8,19 +8,19 @@ services:
   #   environment:
   #     - NGINX_HOST=walking.com
   #     - NGINX_PORT=80
-  veda:
-    image: celestialbeing13/veda
-    container_name: veda
-    ports:
-      - "3000:3000"
-    env_file:
-      - .env.docker
-    environment:
-      - REDIS_URL=redis://redis
-    depends_on:
-      - redis
-    volumes:
-      - veda_data:/var/lib/veda/data
+  # veda:
+  #   image: celestialbeing13/veda
+  #   container_name: veda
+  #   ports:
+  #     - "3000:3000"
+  #   env_file:
+  #     - .env.docker
+  #   environment:
+  #     - REDIS_URL=redis://redis
+  #   depends_on:
+  #     - redis
+  #   volumes:
+  #     - veda_data:/var/lib/veda/data
 
   redis:
     image: redis:alpine

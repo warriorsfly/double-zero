@@ -88,7 +88,7 @@ impl Handler<WebsocketCommand> for ChatClient {
     type Result = ();
 
     fn handle(&mut self, msg: WebsocketCommand, _ctx: &mut Context<Self>) {
-        self.0.write(Message::Text(msg.0.into()));
+        let _ = self.0.write(Message::Text(msg.0.into()));
     }
 }
 
@@ -108,7 +108,7 @@ impl StreamHandler<Result<Frame, WsProtocolError>> for ChatClient {
                 println!("Server: {:?}", txt);
             }
             Ok(Frame::Ping(_)) => {
-                self.0.write(Message::Pong(Bytes::from_static(b"")));
+                let _ = self.0.write(Message::Pong(Bytes::from_static(b"")));
             }
             _ => {}
         }

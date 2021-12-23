@@ -11,7 +11,7 @@ use tonic::transport::Server;
 
 use crate::{
     activity::activity_source_server::ActivitySourceServer,
-    addr::{add_websocket, init_redis, Seravee},
+    addr::{add_websocket, init_redis, Bridge},
     config::CONFIG,
     handler::socket_route,
 };
@@ -22,8 +22,8 @@ pub async fn serv() -> std::io::Result<()> {
     let redis_addr = init_redis(&CONFIG.redis_url);
     let addr: SocketAddr = CONFIG.grpc_url.parse().unwrap();
 
-    let seravee = Seravee {
-        addr: addr,
+    let seravee = Bridge {
+        ws_addr: addr,
         redis_addr: redis_addr.clone().recipient(),
     };
 

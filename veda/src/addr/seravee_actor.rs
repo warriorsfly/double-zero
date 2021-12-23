@@ -19,17 +19,17 @@ impl Into<Activity> for activity::Activity {
     }
 }
 #[derive(Clone)]
-pub struct Seravee {
-    pub addr: SocketAddr,
+pub struct Bridge {
+    pub ws_addr: SocketAddr,
     pub redis_addr: Recipient<Trial>,
 }
 
-impl Actor for Seravee {
+impl Actor for Bridge {
     type Context = Context<Self>;
 }
 
 #[tonic::async_trait]
-impl ActivitySource for Seravee {
+impl ActivitySource for Bridge {
     async fn active(
         &self,
         request: tonic::Request<activity::Message>,

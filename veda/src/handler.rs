@@ -1,4 +1,4 @@
-use crate::addr::{Redis, Seravee, Websocket, WebsocketSession};
+use crate::addr::{Redis, Bridge, Websocket, WebsocketSession};
 use actix::Addr;
 use actix_web::{
     web::{self},
@@ -10,7 +10,7 @@ use std::time::Instant;
 pub async fn socket_route(
     req: HttpRequest,
     stream: web::Payload,
-    grpc_addr: web::Data<Addr<Seravee>>,
+    grpc_addr: web::Data<Addr<Bridge>>,
     redis_addr: web::Data<Addr<Redis>>,
     srv: web::Data<Addr<Websocket>>,
 ) -> Result<HttpResponse, Error> {

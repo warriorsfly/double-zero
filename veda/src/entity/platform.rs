@@ -31,7 +31,7 @@ impl ToRedisArgs for Info {
         W: ?Sized + redis::RedisWrite,
     {
         "device_name".write_redis_args(out);
-        &self.device_name.write_redis_args(out);
+        let _ = &self.device_name.write_redis_args(out);
         if let Some(factory_name) = &self.factory_name {
             "factory_name".write_redis_args(out);
             factory_name.write_redis_args(out);
