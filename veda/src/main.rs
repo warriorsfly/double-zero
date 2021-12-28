@@ -1,16 +1,14 @@
 #[macro_use]
 extern crate lazy_static;
 
-mod addr;
-pub mod activity {
-    tonic::include_proto!("activity");
-}
-
 mod config;
 mod constants;
 mod entity;
 mod handler;
 mod server;
+
+mod mq;
+mod websocket;
 use server::serv;
 
 #[actix_web::main]

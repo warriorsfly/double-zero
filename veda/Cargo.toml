@@ -9,7 +9,7 @@ edition = "2021"
 actix = "0.12"
 actix-web = "4.0.0-beta.15"
 actix-web-actors = "4.0.0-beta.8"
-
+actix-broker = "0.4.1"
 chrono ={version = "0.4",features = ["serde"]}
 # config and log
 dotenv = "0.15"
@@ -26,15 +26,15 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
 # for grpc
-tonic = "0.6"
-tonic-health = "0.5"
-prost = "0.9"
+# tonic = "0.6"
+# tonic-health = "0.5"
+# prost = "0.9"
 
 validator = { version = "0.14", features = ["derive"] }
 
 # for tonic,make .proto file generate .rs file
-[build-dependencies]
-tonic-build = "0.6"
+# [build-dependencies]
+# tonic-build = "0.6"
 
 [dev-dependencies]
 futures-util = { version = "0.3", default-features = false }

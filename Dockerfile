@@ -9,7 +9,7 @@ ADD . ./
 # Fix permissions on source code.
 RUN sudo chown -R rust:rust /home/rust
 
-WORKDIR ./veda
+WORKDIR veda
 # For cache, if build failed
 RUN cargo update
 # Build our application.

@@ -1,12 +1,12 @@
 mod redis_actor;
-mod seravee_actor;
+// mod seravee_actor;
 mod ws_actor;
 
 use actix::{Actor, Addr};
 use actix_web::web::{self, Data};
 use redis::Client;
 
-pub(crate) use self::{redis_actor::*, seravee_actor::*, ws_actor::*};
+pub(crate) use self::{redis_actor::*, ws_actor::*};
 
 pub fn init_redis(redis_url: &str) -> Addr<Redis> {
     let cli = Client::open(redis_url)
