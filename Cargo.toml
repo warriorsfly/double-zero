@@ -1,10 +1,32 @@
-[workspace]
-members = [
-   # 高达00 变革者
-   "innovator",
-   # 高达00 量子计算机[吠陀]
-   "veda",
-   # for test
-   "actix-websocket-client",
-   
-]
+[package]
+# 高达00里面的veda,我希望后面这个可以做做人工智能
+name = "veda"
+version = "0.1.1"
+authors = ["walker <warriorsfly@gmail.com>"]
+edition = "2021"
+
+[dependencies]
+actix = "0.12"
+actix-web = "4.0.0-beta.16"
+actix-web-actors = "4.0.0-beta.9"
+actix-broker = "0.4.1"
+awc = "3.0.0-beta.15"
+chrono ={version = "0.4",features = ["serde"]}
+# config and log
+dotenv = "0.15"
+env_logger = "0.9"
+envy = "0.4"
+futures = "0.3"
+lazy_static = "1"
+log = "0.4"
+rand= "0.8"
+redis = { version = "0.21", features = ["tokio-native-tls-comp"] }
+
+# for serialize
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+validator = { version = "0.14", features = ["derive"] }
+
+[dev-dependencies]
+futures-util = { version = "0.3", default-features = false }
