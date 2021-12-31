@@ -1,4 +1,3 @@
-// use crate::addr::{Redis, Bridge, Websocket, WebsocketSession};
 use actix_web::{
     web,
     Error, HttpRequest, HttpResponse,
@@ -6,6 +5,8 @@ use actix_web::{
 use actix_web_actors::ws;
 
 use crate::session::Session;
+
+mod v1;
 
 
 pub async fn chat_route(

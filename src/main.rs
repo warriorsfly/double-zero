@@ -4,7 +4,8 @@ extern crate lazy_static;
 mod config;
 mod constants;
 mod entity;
-mod handler;
+mod handlers;
+mod route;
 mod server;
 mod session;
 

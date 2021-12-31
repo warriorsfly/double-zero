@@ -36,6 +36,10 @@ pub(crate) struct Session {
 }
 
 impl Session {
+    
+}
+
+impl Session {
     pub fn join_room(&mut self, room_name: &str, ctx: &mut ws::WebsocketContext<Self>) {
         let room_name = room_name.to_owned();
 
@@ -100,12 +104,12 @@ impl Actor for Session {
     type Context = ws::WebsocketContext<Self>;
 
     fn started(&mut self, ctx: &mut Self::Context) {
-        self.join_room("Main", ctx);
+        self.join_room("main", ctx);
     }
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
         info!(
-            "WsChatSession closed for {}({}) in room {}",
+            "Session closed for {}({}) in room {}",
             self.name.clone().unwrap_or_else(|| "anon".to_string()),
             self.id,
             self.room

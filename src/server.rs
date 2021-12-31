@@ -4,7 +4,7 @@ use actix_web::{HttpServer, App, middleware::Logger, web};
 
 use std::collections::HashMap;
 
-use crate::{config::CONFIG, session::{ChatMessage, LeaveRoom, JoinRoom, SendMessage, ListRooms}, handler::chat_route};
+use crate::{config::CONFIG, session::{ChatMessage, LeaveRoom, JoinRoom, SendMessage, ListRooms}, handlers::chat_route};
 
 
 type Client = Recipient<ChatMessage>;
