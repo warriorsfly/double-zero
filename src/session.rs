@@ -10,26 +10,26 @@ use super::server::Server;
 
 #[derive(Clone, Message)]
 #[rtype(result = "()")]
-pub struct ChatMessage(pub String);
+pub(crate) struct ChatMessage(pub String);
 
 #[derive(Clone, Message)]
 #[rtype(result = "usize")]
-pub struct JoinRoom(pub String, pub Option<String>, pub Recipient<ChatMessage>);
+pub(crate) struct JoinRoom(pub String, pub Option<String>, pub Recipient<ChatMessage>);
 
 #[derive(Clone, Message)]
 #[rtype(result = "()")]
-pub struct LeaveRoom(pub String, pub usize);
+pub(crate) struct LeaveRoom(pub String, pub usize);
 
 #[derive(Clone, Message)]
 #[rtype(result = "Vec<String>")]
-pub struct ListRooms;
+pub(crate) struct ListRooms;
 
 #[derive(Clone, Message)]
 #[rtype(result = "()")]
-pub struct SendMessage(pub String, pub usize, pub String);
+pub(crate) struct SendMessage(pub String, pub usize, pub String);
 
 #[derive(Default)]
-pub struct Session {
+pub(crate) struct Session {
     id: usize,
     room: String,
     name: Option<String>,
