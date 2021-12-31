@@ -1,6 +1,6 @@
 // use crate::addr::{Redis, Bridge, Websocket, WebsocketSession};
 use actix_web::{
-    web::{self},
+    web,
     Error, HttpRequest, HttpResponse,
 };
 use actix_web_actors::ws;
