@@ -5,13 +5,9 @@ mod config;
 mod constants;
 mod entity;
 mod handlers;
+
+mod tasks;
+
 mod route;
 mod server;
 mod session;
-
-use server::serv;
-
-#[actix_web::main]
-async fn main() -> std::io::Result<()> {
-    serv().await
-}

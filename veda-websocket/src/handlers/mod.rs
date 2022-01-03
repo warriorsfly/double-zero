@@ -6,7 +6,7 @@ use actix_web_actors::ws;
 
 use crate::session::Session;
 
-mod v1;
+mod securitys;
 
 
 pub async fn chat_route(
