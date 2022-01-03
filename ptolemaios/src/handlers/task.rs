@@ -78,6 +78,7 @@ pub struct TaskJson{
 async fn create_task(tsk:Json<CreateTaskInput>){}
 #[derive(Serialize,Deserialize,Validate)]
 pub struct PatchTaskInput{
+    task:CreateTaskInput
 }
 async fn patch_task(){}
 async fn complate_task(){}

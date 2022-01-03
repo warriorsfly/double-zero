@@ -1,7 +1,11 @@
 [workspace]
 members = [
-   
-    "veda-task",
-     "veda-websocket",
-     "veda-web"
+    #哈喽，检索相关
+    "halo",
+    # 托勒密：任务相关
+    "ptolemaios",
+    # 吠陀: 连接相关
+    "veda",
+    # 高达
+    "els"
 ]
