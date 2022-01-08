@@ -1,4 +1,4 @@
-mod bot;
+mod errors;
 
 #[cfg(test)]
 mod tests {
