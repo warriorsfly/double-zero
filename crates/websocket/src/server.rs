@@ -1,132 +1,49 @@
-use actix::prelude::*;
-use actix_broker::BrokerSubscribe;
-use actix_web::{HttpServer, App, middleware::Logger, web};
+use std::collections::{HashMap, HashSet};
 
-use std::collections::HashMap;
+use actix::Recipient;
+use double_zero_utils::IpAddr;
+use rand::prelude::ThreadRng;
 
-use crate::{config::CONFIG, session::{ChatMessage, LeaveRoom, JoinRoom, SendMessage, ListRooms}, handlers::chat_route};
+use crate::messages::RealMessage;
 
 
-type Client = Recipient<ChatMessage>;
-type Room = HashMap<usize, Client>;
-
-#[derive(Default)]
-pub(crate) struct Server {
-    rooms: HashMap<String, Room>,
+pub struct Session {
+  pub addr: Recipient<RealMessage>,
+  pub ip: IpAddr,
 }
 
-impl Server {
-    fn take_room(&mut self, room_name: &str) -> Option<Room> {
-        let room = self.rooms.get_mut(room_name)?;
-        let room = std::mem::take(room);
-        Some(room)
-    }
+pub struct Server {
+  /// A map from generated random ID to session addr
+  pub sessions: HashMap<usize, Session>,
 
-    fn add_client_to_room(&mut self, room_name: &str, id: Option<usize>, client: Client) -> usize {
-        let mut id = id.unwrap_or_else(rand::random::<usize>);
+  /// A map from community to set of usizes
+  pub community_rooms: HashMap<usize, HashSet<usize>>,
 
-        if let Some(room) = self.rooms.get_mut(room_name) {
-            loop {
-                if room.contains_key(&id) {
-                    id = rand::random::<usize>();
-                } else {
-                    break;
-                }
-            }
+  pub mod_rooms: HashMap<usize, HashSet<usize>>,
 
-            room.insert(id, client);
-            return id;
-        }
+  /// A map from user id to its connection ID for joined users. Remember a user can have multiple
+  /// sessions (IE clients)
+  pub(super) user_groups: HashMap<LocalUserId, HashSet<usize>>,
 
-        // Create a new room for the first client
-        let mut room: Room = HashMap::new();
+  pub(super) rng: ThreadRng,
 
-        room.insert(id, client);
-        self.rooms.insert(room_name.to_owned(), room);
+  /// The Database Pool
+  pub(super) pool: DatabasePool,
 
-        id
-    }
+  /// The Settings
+  pub(super) settings: Settings,
 
-    fn send_chat_message(&mut self, room_name: &str, msg: &str, _src: usize) -> Option<()> {
-        let mut room = self.take_room(room_name)?;
+  /// The Secrets
+  pub(super) secret: Secret,
 
-        for (id, client) in room.drain() {
-            if client.do_send(ChatMessage(msg.to_owned())).is_ok() {
-                self.add_client_to_room(room_name, Some(id), client);
-            }
-        }
+  /// Rate limiting based on rate type and IP addr
+  pub(super) rate_limiter: RateLimit,
 
-        Some(())
-    }
-}
+  /// A list of the current captchas
+//   pub(super) captchas: Vec<CaptchaItem>,
 
-impl Actor for Server {
-    type Context = Context<Self>;
+  message_handler: MessageHandlerType,
+  message_handler_crud: MessageHandlerCrudType,
 
-    fn started(&mut self, ctx: &mut Self::Context) {
-        self.subscribe_system_async::<LeaveRoom>(ctx);
-        self.subscribe_system_async::<SendMessage>(ctx);
-    }
-}
-
-impl Handler<JoinRoom> for Server {
-    type Result = MessageResult<JoinRoom>;
-
-    fn handle(&mut self, msg: JoinRoom, _ctx: &mut Self::Context) -> Self::Result {
-        let JoinRoom(room_name, client_name, client) = msg;
-
-        let id = self.add_client_to_room(&room_name, None, client);
-        let join_msg = format!(
-            "{} joined {}",
-            client_name.unwrap_or_else(|| "anon".to_string()),
-            room_name
-        );
-
-        self.send_chat_message(&room_name, &join_msg, id);
-        MessageResult(id)
-    }
-}
-
-impl Handler<LeaveRoom> for Server {
-    type Result = ();
-
-    fn handle(&mut self, msg: LeaveRoom, _ctx: &mut Self::Context) {
-        if let Some(room) = self.rooms.get_mut(&msg.0) {
-            room.remove(&msg.1);
-        }
-    }
-}
-
-impl Handler<ListRooms> for Server {
-    type Result = MessageResult<ListRooms>;
-
-    fn handle(&mut self, _: ListRooms, _ctx: &mut Self::Context) -> Self::Result {
-        MessageResult(self.rooms.keys().cloned().collect())
-    }
-}
-
-impl Handler<SendMessage> for Server {
-    type Result = ();
-
-    fn handle(&mut self, msg: SendMessage, _ctx: &mut Self::Context) {
-        let SendMessage(room_name, id, msg) = msg;
-        self.send_chat_message(&room_name, &msg, id);
-    }
-}
-
-impl SystemService for Server {}
-impl Supervised for Server {}
-
-pub(crate) async fn serv() -> std::io::Result<()> {
-    std::env::set_var("RUST_LOG", &CONFIG.log);
-    env_logger::init();
-
-    HttpServer::new(move || {
-        App::new()
-            .wrap(Logger::default())
-             .service(web::resource("/ws/").to(chat_route))
-    })
-    .bind(&CONFIG.server)?
-    .run()
-    .await
+//   activity_queue: QueueHandle,
 }

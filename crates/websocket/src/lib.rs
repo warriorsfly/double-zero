@@ -1,11 +1,3 @@
-#[macro_use]
-extern crate lazy_static;
-mod chat;
-mod config;
-mod constants;
-mod entity;
-mod handlers;
+pub mod messages;
+pub mod server;
 
-mod route;
-mod server;
-mod session;
