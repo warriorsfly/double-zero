@@ -1,7 +1,7 @@
 // use crate::UserOperation;
 use actix::{prelude::*, Recipient};
 // use lemmy_api_common::{comment::CommentResponse, post::PostResponse};
-// use lemmy_db_schema::newtypes::{CommunityId, LocalUserId, PostId};
+// use lemmy_db_schema::newtypes::{usize, usize, usize};
 use double_zero_utils::{ConnectionId, IpAddr};
 use serde::{Deserialize, Serialize};
 
@@ -48,31 +48,15 @@ pub struct SendAllMessage<OP: ToString, Response> {
 
 #[derive(Message)]
 #[rtype(result = "()")]
-pub(crate) struct SendPost<OP: ToString> {
-  pub op: OP,
-  pub post: PostResponse,
-  pub websocket_id: Option<ConnectionId>,
-}
-
-#[derive(Message)]
-#[rtype(result = "()")]
-pub(crate) struct SendComment<OP: ToString> {
-  pub op: OP,
-  pub comment: CommentResponse,
-  pub websocket_id: Option<ConnectionId>,
-}
-
-#[derive(Message)]
-#[rtype(result = "()")]
 pub struct JoinUserRoom {
-  pub local_user_id: LocalUserId,
+  pub local_user_id: usize,
   pub id: ConnectionId,
 }
 
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct JoinCommunityRoom {
-  pub community_id: CommunityId,
+  pub community_id: usize,
   pub id: ConnectionId,
 }
 
@@ -81,7 +65,7 @@ pub struct JoinCommunityRoom {
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct JoinTaskGroup {
-  pub post_id: PostId,
+  pub post_id: usize,
   pub id: ConnectionId,
 }
 
@@ -92,12 +76,12 @@ pub struct GetUsersOnline;
 #[derive(Message)]
 #[rtype(usize)]
 pub struct GetTaskUsersOnline {
-  pub task_id: PostId,
+  pub task_id: usize,
 }
 
 #[derive(Message)]
 #[rtype(usize)]
 pub struct GetCommunityUsersOnline {
-  pub community_id: CommunityId,
+  pub community_id: usize,
 }
 

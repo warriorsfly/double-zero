@@ -5,7 +5,9 @@ use tracing_error::SpanTrace;
 
 pub mod apub;
 pub mod claims;
-
+// pub mod rate_limit;
+// pub mod settings;
+// pub mod utils;
 pub type ConnectionId = usize;
 
 #[derive(PartialEq, Eq, Hash, Debug, Clone)]
@@ -53,6 +55,13 @@ impl DoubleZeroError {
         Self {
             message: Some(message),
             ..self
+        }
+    }
+
+    pub fn with_message(self, message: &'static str) -> Self {
+        Self {
+        message: Some(message),
+        ..self
         }
     }
 

@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use actix::Recipient;
-use double_zero_utils::IpAddr;
+use double_zero_utils::{IpAddr};
 use rand::prelude::ThreadRng;
 
 use crate::messages::RealMessage;
@@ -23,27 +23,24 @@ pub struct Server {
 
   /// A map from user id to its connection ID for joined users. Remember a user can have multiple
   /// sessions (IE clients)
-  pub(super) user_groups: HashMap<LocalUserId, HashSet<usize>>,
+  pub(super) user_groups: HashMap<usize, HashSet<usize>>,
 
   pub(super) rng: ThreadRng,
 
-  /// The Database Pool
-  pub(super) pool: DatabasePool,
+//   /// The Database Pool
+//   pub(super) pool: DatabasePool,
 
-  /// The Settings
-  pub(super) settings: Settings,
+//   /// The Settings
+//   pub(super) settings: Settings,
 
-  /// The Secrets
-  pub(super) secret: Secret,
+//   /// The Secrets
+//   pub(super) secret: Secret,
 
-  /// Rate limiting based on rate type and IP addr
-  pub(super) rate_limiter: RateLimit,
+  // Rate limiting based on rate type and IP addr
+  // pub(super) rate_limiter: RateLimit,
 
-  /// A list of the current captchas
-//   pub(super) captchas: Vec<CaptchaItem>,
-
-  message_handler: MessageHandlerType,
-  message_handler_crud: MessageHandlerCrudType,
+//   message_handler: MessageHandlerType,
+//   message_handler_crud: MessageHandlerCrudType,
 
 //   activity_queue: QueueHandle,
 }
