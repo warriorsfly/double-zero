@@ -10,7 +10,7 @@ edition = "2021"
 members = [
     
     "crates/bors",
-    "crates/database-schema",
+    "crates/schema",
     "crates/task",
     "crates/utils",
     "crates/websocket"

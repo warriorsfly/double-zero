@@ -70,12 +70,12 @@ pub struct CaptchaConfig {
 #[serde(default)]
 pub struct DatabaseConfig {
   /// Username to connect to postgres
-  #[default("lemmy")]
+  #[default("allen")]
   pub(super) user: String,
   /// Password to connect to postgres
-  #[default("password")]
+  #[default("walker")]
   pub password: String,
-  #[default("localhost")]
+  #[default("0.0.0.0")]
   /// Host where postgres is running
   pub host: String,
   /// Port where postgres can be accessed
