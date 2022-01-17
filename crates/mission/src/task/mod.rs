@@ -59,7 +59,7 @@ pub struct Origin {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct Mission {
+pub struct Task {
     id: i32,
     summary: String,
     /// Mission remarks

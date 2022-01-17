@@ -1,16 +1,16 @@
 use serde::Deserialize;
 
 #[derive(Deserialize)]
-pub struct MissionEventForm{
+pub struct TaskEventForm{
     /// Task ID
-    mission_id:String,
+    task_id:String,
     /// Notification type
-    /// - 1: mission details change
-    /// - 2: mission collaborators change
-    /// - 3: mission followers change
-    /// - 4: mission reminder time changes
-    /// - 5: mission completion
-    /// - 6: mission cancellation completion
-    /// - 7: mission deletion
+    /// - 1: task details change
+    /// - 2: task collaborators change
+    /// - 3: task followers change
+    /// - 4: task reminder time changes
+    /// - 5: task completion
+    /// - 6: task cancellation completion
+    /// - 7: task deletion
     obj_type:i32,
 }

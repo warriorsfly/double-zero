@@ -4,17 +4,17 @@ use actix_web::web::{Json, Query};
 use serde::{Serialize, Deserialize};
 use validator::Validate;
 
-use crate::mission::{Due, Origin};
+use crate::task::{Due, Origin};
 
 #[derive(Deserialize,Validate)]
-pub struct MissionForm{
+pub struct TaskForm{
     /// Task Title. When creating a task, the Feishu server will treat it as a topic-free task if no title is filled
     /// **Example value**: "每天喝八杯水，保持身心愉悦"
     /// **Data validation rules**:
     /// - Length range: `1` ～ `256` characters
     #[validate(length(min=1, max=256))]
     summary:String,
-    /// Mission remarks
+    /// Task remarks
     /// **Example value**: "多吃水果，多运动，健康生活，快乐工作。"
     /// **Data validation rules**:
     /// - Length range: `0` ～ `65536` characters
@@ -44,12 +44,12 @@ pub struct MissionForm{
 
 
 #[derive(Serialize)]
-pub struct MissionJson{
+pub struct TaskJson{
     /// Task ID, issued by the Feishu task server
     id:String,
     /// Task Title. When creating a task, the Feishu server will treat it as a topic-free task if no title is filled
     summary:String,
-    /// Mission remarks
+    /// Task remarks
     discription:String,
     /// The access party can customize the subsidiary information binary format, using base64 encoding, and the resolution method is determined by the access party itself
     extra:String,
@@ -76,21 +76,21 @@ pub struct MissionJson{
 
 }
 
-async fn create_mission(msn:Json<MissionForm>){}
+async fn create_task(task:Json<TaskForm>){}
 #[derive(Deserialize)]
-pub struct PatchMissionInput{
-    mission:MissionForm,
+pub struct PatchTaskInput{
+    task:TaskForm,
     update_fields:Vec<String>,
 }
 
-async fn patch_mission(msn:Json<PatchMissionInput>,msn_id:Query<String>){}
+async fn patch_task(task:Json<PatchTaskInput>,task_id:Query<String>){}
 
-async fn complate_mission(msn_id:Query<String>){}
+async fn complate_task(task_id:Query<String>){}
 
-async fn uncomplate_mission(msn_id:Query<String>){}
+async fn uncomplate_task(task_id:Query<String>){}
 
-async fn delate_mission(msn_id:Query<String>){}
+async fn delate_task(task_id:Query<String>){}
 
-async fn get_missions(page_size:Query<Option<i32>>,page_index:Query<Option<i32>>,user_id_type:Query<Option<i32>>){}
+async fn get_tasks(page_size:Query<Option<i32>>,page_index:Query<Option<i32>>,user_id_type:Query<Option<i32>>){}
 
-async fn get_mission_detail(msn_id:Query<String>){}
+async fn get_task_detail(task_id:Query<String>){}
