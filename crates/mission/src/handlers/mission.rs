@@ -4,10 +4,10 @@ use actix_web::web::{Json, Query};
 use serde::{Serialize, Deserialize};
 use validator::Validate;
 
-use crate::generic::{Due, Origin};
+use crate::mission::{Due, Origin};
 
 #[derive(Deserialize,Validate)]
-pub struct TaskJsonInput{
+pub struct MissionForm{
     /// Task Title. When creating a task, the Feishu server will treat it as a topic-free task if no title is filled
     /// **Example value**: "每天喝八杯水，保持身心愉悦"
     /// **Data validation rules**:
@@ -44,7 +44,7 @@ pub struct TaskJsonInput{
 
 
 #[derive(Serialize)]
-pub struct TaskJson{
+pub struct MissionJson{
     /// Task ID, issued by the Feishu task server
     id:String,
     /// Task Title. When creating a task, the Feishu server will treat it as a topic-free task if no title is filled
@@ -76,21 +76,21 @@ pub struct TaskJson{
 
 }
 
-async fn create_task(tsk:Json<TaskJsonInput>){}
+async fn create_mission(msn:Json<MissionForm>){}
 #[derive(Deserialize)]
-pub struct PatchTaskInput{
-    task:TaskJsonInput,
+pub struct PatchMissionInput{
+    mission:MissionForm,
     update_fields:Vec<String>,
 }
 
-async fn patch_task(tsk:Json<PatchTaskInput>,task_id:Query<String>){}
+async fn patch_mission(msn:Json<PatchMissionInput>,msn_id:Query<String>){}
 
-async fn complate_task(task_id:Query<String>){}
+async fn complate_mission(msn_id:Query<String>){}
 
-async fn uncomplate_task(task_id:Query<String>){}
+async fn uncomplate_mission(msn_id:Query<String>){}
 
-async fn delate_task(task_id:Query<String>){}
+async fn delate_mission(msn_id:Query<String>){}
 
-async fn get_tasks(page_size:Query<Option<i32>>,page_index:Query<Option<i32>>,user_id_type:Query<Option<i32>>){}
+async fn get_missions(page_size:Query<Option<i32>>,page_index:Query<Option<i32>>,user_id_type:Query<Option<i32>>){}
 
-async fn get_task_detail(task_id:Query<String>){}
+async fn get_mission_detail(msn_id:Query<String>){}

@@ -1,5 +1,5 @@
-mod generic;
 mod handlers;
+mod mission;
 
 #[cfg(test)]
 mod tests {
