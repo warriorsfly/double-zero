@@ -2,13 +2,13 @@
 use actix::{prelude::*, Recipient};
 // use lemmy_api_common::{comment::CommentResponse, post::PostResponse};
 // use lemmy_db_schema::newtypes::{usize, usize, usize};
-use double_zero_utils::{ConnectionId, IpAddr};
+use double_zero_utils::{ConnectionId, IpAddr, LocalUserId, CommunityId, TaskId};
 use serde::{Deserialize, Serialize};
 
 /// Chat server sends this messages to session
 #[derive(Message)]
 #[rtype(result = "()")]
-pub struct RealMessage(pub String);
+pub struct WsMessage(pub String);
 
 /// Message for chat server communications
 
@@ -16,7 +16,7 @@ pub struct RealMessage(pub String);
 #[derive(Message)]
 #[rtype(usize)]
 pub struct Connect {
-  pub addr: Recipient<RealMessage>,
+  pub addr: Recipient<WsMessage>,
   pub ip: IpAddr,
 }
 
@@ -43,20 +43,20 @@ pub struct StandardMessage {
 pub struct SendAllMessage<OP: ToString, Response> {
   pub op: OP,
   pub response: Response,
-  pub websocket_id: Option<ConnectionId>,
+  pub session_id: Option<ConnectionId>,
 }
 
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct JoinUserRoom {
-  pub local_user_id: usize,
+  pub local_user_id: LocalUserId,
   pub id: ConnectionId,
 }
 
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct JoinCommunityRoom {
-  pub community_id: usize,
+  pub community_id: CommunityId,
   pub id: ConnectionId,
 }
 
@@ -65,23 +65,23 @@ pub struct JoinCommunityRoom {
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct JoinTaskGroup {
-  pub post_id: usize,
+  pub task_id: TaskId,
   pub id: ConnectionId,
 }
 
 #[derive(Message)]
 #[rtype(usize)]
-pub struct GetUsersOnline;
+pub struct UsersOnline;
 
 #[derive(Message)]
 #[rtype(usize)]
-pub struct GetTaskUsersOnline {
+pub struct TaskUsersOnline {
   pub task_id: usize,
 }
 
 #[derive(Message)]
 #[rtype(usize)]
-pub struct GetCommunityUsersOnline {
-  pub community_id: usize,
+pub struct CommunityUsersOnline {
+  pub community_id: CommunityId,
 }
 

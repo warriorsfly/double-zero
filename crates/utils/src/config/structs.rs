@@ -82,7 +82,7 @@ pub struct DatabaseConfig {
   #[default(5432)]
   pub(super) port: i32,
   /// Name of the postgres database for lemmy
-  #[default("lemmy")]
+  #[default("double_zero")]
   pub(super) database: String,
   /// Maximum number of active sql connections
   #[default(5)]
@@ -98,8 +98,8 @@ pub struct EmailConfig {
   pub smtp_login: Option<String>,
   /// Password to login to the smtp server
   pub smtp_password: Option<String>,
-  #[doku(example = "noreply@example.com")]
-  /// Address to send emails from, eg "noreply@your-instance.com"
+  #[doku(example = "warriorsfly@gmail.com")]
+  /// Address to send emails from, eg "warriorsfly@gmail.com"
   pub smtp_from_address: String,
   /// Whether or not smtp connections should use tls
   pub use_tls: bool,
@@ -173,7 +173,7 @@ pub struct SetupConfig {
   #[doku(example = "my_passwd_longer_than_ten_characters")]
   pub admin_password: String,
   /// Name of the site (can be changed later)
-  #[doku(example = "My Lemmy Instance")]
+  #[doku(example = "My Double-Zero Instance")]
   pub site_name: String,
   /// Email for the admin user (optional, can be omitted and set later through the website)
   #[default(None)]

@@ -4,11 +4,11 @@ use actix::Recipient;
 use double_zero_utils::{IpAddr};
 use rand::prelude::ThreadRng;
 
-use crate::messages::RealMessage;
+use crate::messages::WsMessage;
 
 
 pub struct Session {
-  pub addr: Recipient<RealMessage>,
+  pub addr: Recipient<WsMessage>,
   pub ip: IpAddr,
 }
 

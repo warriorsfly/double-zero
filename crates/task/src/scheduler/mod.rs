@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 pub mod executor;
-pub mod scheduler;
 
 /// Deadline setting for tasks
 #[derive(Serialize, Deserialize, Default)]

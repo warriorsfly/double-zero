@@ -8,7 +8,14 @@ pub mod claims;
 // pub mod rate_limit;
 // pub mod settings;
 // pub mod utils;
+/// local user id
+pub type LocalUserId = usize;
+/// websocket connection id
 pub type ConnectionId = usize;
+/// community room id
+pub type CommunityId = usize;
+/// task id
+pub type TaskId = usize;
 
 #[derive(PartialEq, Eq, Hash, Debug, Clone)]
 pub struct IpAddr(pub String);
@@ -32,7 +39,7 @@ macro_rules! location_info {
 }
 
 #[derive(serde::Serialize)]
-struct ApiError {
+struct DoZeApiError {
     error: &'static str,
 }
 
@@ -60,15 +67,15 @@ impl DoubleZeroError {
 
     pub fn with_message(self, message: &'static str) -> Self {
         Self {
-        message: Some(message),
-        ..self
+            message: Some(message),
+            ..self
         }
     }
 
     pub fn to_json(&self) -> Result<String, Self> {
         let api_error = match self.message {
-            Some(error) => ApiError { error },
-            None => ApiError { error: "Unknown" },
+            Some(error) => DoZeApiError { error },
+            None => DoZeApiError { error: "Unknown" },
         };
 
         Ok(serde_json::to_string(&api_error)?)
@@ -123,7 +130,7 @@ impl actix_web::error::ResponseError for DoubleZeroError {
 
     fn error_response(&self) -> HttpResponse {
         if let Some(message) = &self.message {
-            HttpResponse::build(self.status_code()).json(ApiError { error: message })
+            HttpResponse::build(self.status_code()).json(DoZeApiError { error: message })
         } else {
             HttpResponse::build(self.status_code())
                 .content_type("text/plain")

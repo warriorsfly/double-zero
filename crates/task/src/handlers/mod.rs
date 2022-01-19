@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-mod collaborator;
+mod assignee;
 mod comment;
 mod event;
 mod follower;

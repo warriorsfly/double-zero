@@ -11,7 +11,7 @@ members = [
     
     "crates/bors",
     "crates/schema",
-    "crates/mission",
+    "crates/task",
     "crates/utils",
     "crates/websocket"
 ]

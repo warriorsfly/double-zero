@@ -1,5 +1,5 @@
 mod handlers;
-mod task;
+mod scheduler;
 
 #[cfg(test)]
 mod tests {
