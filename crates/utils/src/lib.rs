@@ -5,17 +5,15 @@ use tracing_error::SpanTrace;
 
 pub mod apub;
 pub mod claims;
-// pub mod rate_limit;
-// pub mod settings;
-// pub mod utils;
+pub mod rate_limit;
+pub mod settings;
+pub mod utils;
 /// local user id
 pub type LocalUserId = usize;
 /// websocket connection id
 pub type ConnectionId = usize;
-/// community room id
-pub type CommunityId = usize;
-/// task id
-pub type TaskId = usize;
+/// room id
+pub type RoomId = usize;
 
 #[derive(PartialEq, Eq, Hash, Debug, Clone)]
 pub struct IpAddr(pub String);

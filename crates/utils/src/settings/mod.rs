@@ -41,16 +41,8 @@ impl Settings {
     SETTINGS.read().expect("read config").to_owned()
   }
 
-  pub fn get_database_url(&self) -> String {
-    let conf = &self.database;
-    format!(
-      "postgres://{}:{}@{}:{}/{}",
-      conf.user, conf.password, conf.host, conf.port, conf.database,
-    )
-  }
-
   pub fn get_config_location() -> String {
-    env::var("LEMMY_CONFIG_LOCATION").unwrap_or_else(|_| DEFAULT_CONFIG_FILE.to_string())
+    env::var("DOUBLE_ZERO_CONFIG_LOCATION").unwrap_or_else(|_| DEFAULT_CONFIG_FILE.to_string())
   }
 
   pub fn read_config_file() -> Result<String, Error> {

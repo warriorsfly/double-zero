@@ -1,11 +1,10 @@
-use crate::{IpAddr, LemmyError};
+use crate::{IpAddr, DoubleZeroError};
 use actix_web::dev::ConnectionInfo;
 use chrono::{DateTime, FixedOffset, NaiveDateTime};
 use itertools::Itertools;
 use once_cell::sync::Lazy;
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use regex::Regex;
-use url::Url;
 
 static MENTIONS_REGEX: Lazy<Regex> = Lazy::new(|| {
   Regex::new(r"@(?P<name>[\w.]+)@(?P<domain>[a-zA-Z0-9._:-]+)").expect("compile regex")
@@ -60,9 +59,9 @@ pub(crate) fn slur_check<'a>(
   }
 }
 
-pub fn check_slurs(text: &str, slur_regex: &Option<Regex>) -> Result<(), LemmyError> {
+pub fn check_slurs(text: &str, slur_regex: &Option<Regex>) -> Result<(), DoubleZeroError> {
   if let Err(slurs) = slur_check(text, slur_regex) {
-    let error = LemmyError::from(anyhow::anyhow!("{}", slurs_vec_to_str(slurs)));
+    let error = DoubleZeroError::from(anyhow::anyhow!("{}", slurs_vec_to_str(slurs)));
     Err(error.with_message("slurs"))
   } else {
     Ok(())
@@ -72,7 +71,7 @@ pub fn check_slurs(text: &str, slur_regex: &Option<Regex>) -> Result<(), LemmyEr
 pub fn check_slurs_opt(
   text: &Option<String>,
   slur_regex: &Option<Regex>,
-) -> Result<(), LemmyError> {
+) -> Result<(), DoubleZeroError> {
   match text {
     Some(t) => check_slurs(t, slur_regex),
     None => Ok(()),
@@ -161,43 +160,4 @@ pub fn get_ip(conn_info: &ConnectionInfo) -> IpAddr {
       .unwrap_or("127.0.0.1")
       .to_string(),
   )
-}
-
-pub fn clean_url_params(mut url: Url) -> Url {
-  if url.query().is_some() {
-    let new_query = url
-      .query_pairs()
-      .filter(|q| !CLEAN_URL_PARAMS_REGEX.is_match(&q.0))
-      .map(|q| format!("{}={}", q.0, q.1))
-      .join("&");
-    url.set_query(Some(&new_query));
-  }
-  url
-}
-
-#[cfg(test)]
-mod tests {
-  use crate::utils::{clean_url_params, is_valid_post_title};
-  use url::Url;
-
-  #[test]
-  fn test_clean_url_params() {
-    let url = Url::parse("https://example.com/path/123?utm_content=buffercf3b2&utm_medium=social&username=randomuser&id=123").unwrap();
-    let cleaned = clean_url_params(url);
-    let expected = Url::parse("https://example.com/path/123?username=randomuser&id=123").unwrap();
-    assert_eq!(expected.to_string(), cleaned.to_string());
-
-    let url = Url::parse("https://example.com/path/123").unwrap();
-    let cleaned = clean_url_params(url.clone());
-    assert_eq!(url.to_string(), cleaned.to_string());
-  }
-
-  #[test]
-  fn regex_checks() {
-    assert!(!is_valid_post_title("hi"));
-    assert!(is_valid_post_title("him"));
-    assert!(!is_valid_post_title("n\n\n\n\nanother"));
-    assert!(!is_valid_post_title("hello there!\n this is a test."));
-    assert!(is_valid_post_title("hello there! this is a test."));
-  }
 }

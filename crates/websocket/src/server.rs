@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
-
 use actix::Recipient;
-use double_zero_utils::{IpAddr};
+use diesel::{r2d2::{Pool, ConnectionManager}, PgConnection};
+use double_zero_utils::{IpAddr, ConnectionId, LocalUserId, RoomId};
 use rand::prelude::ThreadRng;
 
 use crate::messages::WsMessage;
@@ -10,25 +10,20 @@ use crate::messages::WsMessage;
 pub struct Session {
   pub addr: Recipient<WsMessage>,
   pub ip: IpAddr,
+  pub rooms: Option<HashSet<RoomId>>,
 }
 
 pub struct Server {
   /// A map from generated random ID to session addr
-  pub sessions: HashMap<usize, Session>,
+  pub sessions: HashMap<ConnectionId, Session>,
 
   /// A map from community to set of usizes
-  pub community_rooms: HashMap<usize, HashSet<usize>>,
-
-  pub mod_rooms: HashMap<usize, HashSet<usize>>,
-
-  /// A map from user id to its connection ID for joined users. Remember a user can have multiple
-  /// sessions (IE clients)
-  pub(super) user_groups: HashMap<usize, HashSet<usize>>,
+  pub rooms: HashMap<RoomId, HashSet<LocalUserId>>,
 
   pub(super) rng: ThreadRng,
 
-//   /// The Database Pool
-//   pub(super) pool: DatabasePool,
+  /// The Database Pool
+  pub(super) pool: Pool<ConnectionManager<PgConnection>>,
 
 //   /// The Settings
 //   pub(super) settings: Settings,
