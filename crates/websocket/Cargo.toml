@@ -8,7 +8,7 @@ edition = "2021"
 double-zero-utils = { version = "0.0.1", path = "../utils" }
 actix = "0.12"
 actix-cors ="0.6.0-beta.8"
-actix-web = "4.0.0-rc.1"
+actix-web = "4.0.0-rc.3"
 actix-web-actors = "4.0.0-beta.11"
 awc = "3.0.0-beta.20"
 anyhow = "1"
@@ -20,6 +20,9 @@ rand = "0.8"
 # for serialize
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
 
 [dev-dependencies]
 actix-test = "0.1.0-beta.12"

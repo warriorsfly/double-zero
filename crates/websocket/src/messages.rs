@@ -1,21 +1,19 @@
 // use crate::UserOperation;
 use actix::{prelude::*, Recipient};
-// use double-zero-api_common::{comment::CommentResponse, post::PostResponse};
-// use double-zero-db_schema::newtypes::{usize, usize, usize};
-use double_zero_utils::{ConnectionId, IpAddr, LocalUserId, RoomId};
+use double_zero_utils::{ConnectionId, IpAddr, RoomId};
 use serde::{Deserialize, Serialize};
 
 /// Chat server sends this messages to session
 #[derive(Message)]
 #[rtype(result = "()")]
-pub struct RealTimeMessage(pub String);
+pub struct RootMessage(pub String);
 
 /// Message for chat server communications
 /// New chat session is created
 #[derive(Message)]
 #[rtype(usize)]
 pub struct Connect {
-    pub addr: Recipient<RealTimeMessage>,
+    pub addr: Recipient<RootMessage>,
     pub ip: IpAddr,
 }
 
@@ -42,14 +40,4 @@ pub struct StandardMessage {
 pub struct JoinRoom {
     pub room_id: RoomId,
     pub websocket_id: ConnectionId,
-}
-
-#[derive(Message)]
-#[rtype(usize)]
-pub struct RoomUsers;
-
-#[derive(Message)]
-#[rtype(usize)]
-pub struct RoomOnlineUsers {
-    pub room_id: usize,
 }

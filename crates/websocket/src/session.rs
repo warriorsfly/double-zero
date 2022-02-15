@@ -2,10 +2,10 @@ use actix::Recipient;
 use double_zero_utils::{IpAddr, RoomId};
 use std::collections::HashSet;
 
-use crate::messages::RealTimeMessage;
+use crate::messages::RootMessage;
 
 pub struct Session {
-    pub addr: Recipient<RealTimeMessage>,
+    pub addr: Recipient<RootMessage>,
     pub ip: IpAddr,
     pub rooms: Option<HashSet<RoomId>>,
 }
