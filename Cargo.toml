@@ -10,9 +10,10 @@ edition = "2021"
 members = [
     
     "crates/bors",
-    "crates/schema",
+    # "crates/schema",
     "crates/task",
     "crates/utils",
+ 
     "crates/websocket"
 ]
 
@@ -21,8 +22,8 @@ members = [
 actix = "0.12"
 actix-cors ="0.6.0-beta.8"
 actix-web = "4.0.0-rc.3"
-actix-web-actors = "4.0.0-beta.11"
-awc = "3.0.0-beta.20"
+actix-web-actors = "4.0.0-beta.12"
+awc = "3.0.0-beta.21"
 
 anyhow = "1"
 chrono ={version = "0.4",features = ["serde"]}
@@ -42,6 +43,6 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 # elasticsearch = "7.14.0-alpha.1"
 serde = { version = "1", features = ["derive"] }
 [dev-dependencies]
-actix-test = "0.1.0-beta.12"
+actix-test = "0.1.0-beta.13"
 
 

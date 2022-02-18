@@ -91,11 +91,6 @@ pub fn generate_random_string() -> String {
     .take(30)
     .collect()
 }
-
-pub fn markdown_to_html(text: &str) -> String {
-  comrak::markdown_to_html(text, &comrak::ComrakOptions::default())
-}
-
 // TODO nothing is done with community / group webfingers yet, so just ignore those for now
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct MentionData {

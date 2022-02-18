@@ -16,15 +16,12 @@ pub struct Claims {
 
 impl Claims {
   pub fn decode(jwt: &str, jwt_secret: &str) -> Result<TokenData<Claims>, DoubleZeroError> {
-    let v = Validation {
-      validate_exp: false,
-      ..Validation::default()
-    };
+    let v = Validation::default();
     let key = DecodingKey::from_secret(jwt_secret.as_ref());
     Ok(decode::<Claims>(jwt, &key, &v)?)
   }
 
-  pub fn jwt(local_user_id: i32, jwt_secret: &str, hostname: &str) -> Result<Jwt, DoubleZeroError> {
+  pub fn encode(local_user_id: i32, jwt_secret: &str, hostname: &str) -> Result<Jwt, DoubleZeroError> {
     let my_claims = Claims {
       sub: local_user_id,
       iss: hostname.to_string(),

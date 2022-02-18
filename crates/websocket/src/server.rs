@@ -1,10 +1,9 @@
 use std::collections::{HashMap, HashSet};
 use actix::prelude::*;
-use diesel::{r2d2::{Pool, ConnectionManager}, PgConnection};
 use double_zero_utils::{ConnectionId, UserId, RoomId};
 use rand::{prelude::ThreadRng, Rng};
 use tracing::info;
-use crate::messages::{Connect, Disconnect};
+use crate::messages::{Connect, Disconnect, JoinRoom};
 
 use super::session::Session;
 
@@ -17,8 +16,6 @@ pub struct ChatServer {
 
   pub(crate) rng: ThreadRng,
 
-  /// The Database Pool
-  pub(crate) pool: Pool<ConnectionManager<PgConnection>>,
 
 //   /// The Settings
 //   pub(super) settings: Settings,
@@ -75,5 +72,19 @@ impl Handler<Disconnect> for ChatServer {
 
   
     }
+  }
+}
+
+/// Handler for JoinRoom message.
+impl Handler<JoinRoom> for ChatServer {
+  type Result = ();
+
+  fn handle(&mut self, msg: JoinRoom, _: &mut Context<Self>) {
+    // JoinRoom
+    // if self.rooms..is_some() {
+    //   for sessions in self.rooms.values_mut() {
+    //     sessions.remove(&msg.websocket_id);
+    //   }
+    // }
   }
 }

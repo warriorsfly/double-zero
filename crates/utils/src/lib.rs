@@ -5,8 +5,6 @@ use tracing_error::SpanTrace;
 
 pub mod apub;
 pub mod claims;
-pub mod rate_limit;
-pub mod settings;
 pub mod utils;
 /// local user id
 pub type UserId = usize;
@@ -69,15 +67,6 @@ impl DoubleZeroError {
             ..self
         }
     }
-
-    pub fn to_json(&self) -> Result<String, Self> {
-        let api_error = match self.message {
-            Some(error) => DoZeApiError { error },
-            None => DoZeApiError { error: "Unknown" },
-        };
-
-        Ok(serde_json::to_string(&api_error)?)
-    }
 }
 
 impl<T> From<T> for DoubleZeroError
@@ -120,10 +109,7 @@ impl Display for DoubleZeroError {
 
 impl actix_web::error::ResponseError for DoubleZeroError {
     fn status_code(&self) -> StatusCode {
-        match self.inner.downcast_ref::<diesel::result::Error>() {
-            Some(diesel::result::Error::NotFound) => StatusCode::NOT_FOUND,
-            _ => StatusCode::BAD_REQUEST,
-        }
+        StatusCode::BAD_REQUEST
     }
 
     fn error_response(&self) -> HttpResponse {
