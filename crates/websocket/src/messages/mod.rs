@@ -6,14 +6,14 @@ use serde::{Deserialize, Serialize};
 /// Chat server sends this messages to session
 #[derive(Message)]
 #[rtype(result = "()")]
-pub struct RootMessage(pub String);
+pub struct GnMessage(pub String);
 
 /// Message for chat server communications
 /// New chat session is created
 #[derive(Message)]
 #[rtype(usize)]
 pub struct Connect {
-    pub addr: Recipient<RootMessage>,
+    pub addr: Recipient<GnMessage>,
     pub ip: IpAddr,
 }
 

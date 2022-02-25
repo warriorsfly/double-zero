@@ -7,7 +7,7 @@ use crate::messages::{Connect, Disconnect, JoinRoom};
 
 use super::session::Session;
 
-pub struct ChatServer {
+pub struct TransAmServer {
   /// A map from generated random ID to session addr
   pub sessions: HashMap<ConnectionId, Session>,
 
@@ -29,7 +29,7 @@ pub struct ChatServer {
 
 
 /// Make actor from `ChatServer`
-impl Actor for ChatServer {
+impl Actor for TransAmServer {
   /// We are going to use simple Context, we just need ability to communicate
   /// with other actors.
   type Context = Context<Self>;
@@ -38,7 +38,7 @@ impl Actor for ChatServer {
 /// Handler for Connect message.
 ///
 /// Register new session and assign unique id to this session
-impl Handler<Connect> for ChatServer {
+impl Handler<Connect> for TransAmServer {
   type Result = ConnectionId;
 
   fn handle(&mut self, msg: Connect, _ctx: &mut Context<Self>) -> Self::Result {
@@ -60,7 +60,7 @@ impl Handler<Connect> for ChatServer {
 }
 
 /// Handler for Disconnect message.
-impl Handler<Disconnect> for ChatServer {
+impl Handler<Disconnect> for TransAmServer {
   type Result = ();
 
   fn handle(&mut self, msg: Disconnect, _: &mut Context<Self>) {
@@ -76,7 +76,7 @@ impl Handler<Disconnect> for ChatServer {
 }
 
 /// Handler for JoinRoom message.
-impl Handler<JoinRoom> for ChatServer {
+impl Handler<JoinRoom> for TransAmServer {
   type Result = ();
 
   fn handle(&mut self, msg: JoinRoom, _: &mut Context<Self>) {

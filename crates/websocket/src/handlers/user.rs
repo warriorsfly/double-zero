@@ -1,5 +1,9 @@
+use actix_web::web::{Data, Json};
+use double_zero_utils::{DoubleZeroError, UserId};
 use redis::{FromRedisValue, ToRedisArgs};
 use serde::{Deserialize, Serialize};
+
+use crate::server::TransAmServer;
 
 /// device info
 #[derive(Deserialize, Serialize)]
@@ -63,14 +67,14 @@ impl ToRedisArgs for Platform {
         W: ?Sized + redis::RedisWrite,
     {
         let (platform, device) = match self {
-            Platform::Android(info) => ("Android", info),
-            Platform::Embedded(info) => ("Embedded", info),
-            Platform::IPhone(info) => ("IPhone", info),
-            Platform::IPad(info) => ("IPad", info),
-            Platform::Macos(info) => ("Macos", info),
-            Platform::Tablet(info) => ("Tablet", info),
-            Platform::Web(info) => ("Web", info),
-            Platform::Windows(info) => ("Windows", info),
+            Platform::Android(info) => ("android", info),
+            Platform::Embedded(info) => ("embedded", info),
+            Platform::IPhone(info) => ("iphone", info),
+            Platform::IPad(info) => ("ipad", info),
+            Platform::Macos(info) => ("macos", info),
+            Platform::Tablet(info) => ("tablet", info),
+            Platform::Web(info) => ("web", info),
+            Platform::Windows(info) => ("windows", info),
         };
 
         out.write_arg(b"platform");
@@ -95,3 +99,22 @@ impl FromRedisValue for Platform {
         }
     }
 }
+
+/// device info
+#[derive(Deserialize, Serialize)]
+pub struct User {
+    id: UserId,
+    name: String,
+    platform: Platform,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct UserLoginForm {
+    name: String,
+    password: String,
+    platform: Platform,
+}
+
+// pub async fn login(am:Data<TransAmServer>,form:Json<UserLoginForm>)->Result<User,DoubleZeroError>{
+
+// }
