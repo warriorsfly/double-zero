@@ -7,9 +7,9 @@ edition = "2021"
 
 [dependencies]
 futures = "0.3"
-actix-cors ="0.6.0-beta.10"
-actix-web = "4.0.0-rc.3"
-actix-web-actors = "4.0.0-beta.12"
+actix-cors ="0.6"
+actix-web = "4"
+actix-web-actors = "4"
 awc = "3.0.0-beta.21"
 pin-project = "1.0.3"
 bytes = "1.0.0"
