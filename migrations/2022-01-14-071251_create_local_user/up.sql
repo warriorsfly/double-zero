@@ -1,20 +1,12 @@
-CREATE TABLE local_user (
+CREATE TABLE local_users (
     id serial primary key,
-    user_id int references user_ on update cascade on delete cascade not null unique,
+    user_id int references users on update cascade on delete cascade not null unique,
     password_encrypted text NOT NULL,
     email text unique,
-    show_nsfw boolean DEFAULT false NOT NULL,
-    theme character varying(20) DEFAULT 'browser'::character varying NOT NULL,
-    default_sort_type smallint DEFAULT 0 NOT NULL,
-    default_listing_type smallint DEFAULT 2 NOT NULL,
-    lang character varying(20) DEFAULT 'browser'::character varying NOT NULL,
     show_avatars boolean DEFAULT true NOT NULL,
     send_notifications_to_email boolean DEFAULT false NOT NULL,
     validator_time timestamp without time zone DEFAULT now() NOT NULL,
-    show_scores boolean DEFAULT true NOT NULL,
     show_bot_accounts boolean DEFAULT true NOT NULL,
-    show_read_posts boolean DEFAULT true NOT NULL,
-    show_new_post_notifs boolean DEFAULT false NOT NULL,
     email_verified boolean DEFAULT false NOT NULL,
     accepted_application boolean DEFAULT false NOT NULL
 );

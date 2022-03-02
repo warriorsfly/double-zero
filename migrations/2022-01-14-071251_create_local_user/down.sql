@@ -1,1 +1,1 @@
-DROP TABLE public.local_user;
+DROP TABLE local_users;
