@@ -18,8 +18,12 @@ members = [
 ]
 
 [dependencies]
+# double-zeroß-bors = { version = "0.1", path = "./crates/bors" }
+double-zero-task = { version = "0.1", path = "./crates/task" }
+double-zero-utils = { version = "0.1", path = "./crates/utils" }
 
-actix = "0.12"
+
+actix = "0.13"
 actix-cors ="0.6"
 actix-web = "4"
 actix-web-actors = "4"
