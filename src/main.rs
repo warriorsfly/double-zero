@@ -1,8 +1,8 @@
-#[macro_use]
-extern crate lazy_static;
 
-mod config;
+
 mod constants;
+mod route;
+mod server;
 
 
 #[actix_web::main]

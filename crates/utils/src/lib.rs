@@ -1,9 +1,12 @@
-use actix_web::{http::StatusCode, HttpResponse};
+#[macro_use]
+extern crate lazy_static;
 
+use actix_web::{http::StatusCode, HttpResponse};
 use std::{fmt, fmt::Display};
 use tracing_error::SpanTrace;
 
 pub mod apub;
+pub mod config;
 pub mod claims;
 pub mod utils;
 /// local user id
