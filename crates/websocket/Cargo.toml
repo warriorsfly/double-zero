@@ -18,6 +18,7 @@ rand = "0.8"
 redis = { version = "0.21", features = ["cluster","tokio-comp"] }
 # for serialize
 serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 

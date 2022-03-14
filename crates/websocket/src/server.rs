@@ -7,29 +7,19 @@ use crate::messages::{Connect, Disconnect, JoinRoom};
 
 use super::session::Session;
 
-pub struct TransAmServer {
+pub struct TransAmSystem {
   /// A map from generated random ID to session addr
   pub sessions: HashMap<ConnectionId, Session>,
 
   /// A map from community to set of usizes
-  pub rooms: HashMap<RoomId, HashSet<UserId>>,
+  pub rooms: HashMap<RoomId, HashSet<ConnectionId>>,
 
   pub(crate) rng: ThreadRng,
-
-
-//   /// The Settings
-//   pub(super) settings: Settings,
-
-//   /// The Secrets
-//   pub(super) secret: Secret,
-
-  // Rate limiting based on rate type and IP addr
-  // pub(super) rate_limiter: RateLimit,
 }
 
 
 /// Make actor from `ChatServer`
-impl Actor for TransAmServer {
+impl Actor for TransAmSystem {
   /// We are going to use simple Context, we just need ability to communicate
   /// with other actors.
   type Context = Context<Self>;
@@ -38,7 +28,7 @@ impl Actor for TransAmServer {
 /// Handler for Connect message.
 ///
 /// Register new session and assign unique id to this session
-impl Handler<Connect> for TransAmServer {
+impl Handler<Connect> for TransAmSystem {
   type Result = ConnectionId;
 
   fn handle(&mut self, msg: Connect, _ctx: &mut Context<Self>) -> Self::Result {
@@ -60,7 +50,7 @@ impl Handler<Connect> for TransAmServer {
 }
 
 /// Handler for Disconnect message.
-impl Handler<Disconnect> for TransAmServer {
+impl Handler<Disconnect> for TransAmSystem {
   type Result = ();
 
   fn handle(&mut self, msg: Disconnect, _: &mut Context<Self>) {
@@ -76,15 +66,11 @@ impl Handler<Disconnect> for TransAmServer {
 }
 
 /// Handler for JoinRoom message.
-impl Handler<JoinRoom> for TransAmServer {
+impl Handler<JoinRoom> for TransAmSystem {
   type Result = ();
 
   fn handle(&mut self, msg: JoinRoom, _: &mut Context<Self>) {
     // JoinRoom
-    // if self.rooms..is_some() {
-    //   for sessions in self.rooms.values_mut() {
-    //     sessions.remove(&msg.websocket_id);
-    //   }
-    // }
+    // let room = self.rooms.get_mut(&msg.room_id).unwa
   }
 }
