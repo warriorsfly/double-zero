@@ -7,7 +7,7 @@ use crate::messages::{Connect, Disconnect, JoinRoom};
 
 use super::session::Session;
 
-pub struct TransAmSystem {
+pub(crate) struct TransAmSystem {
   /// A map from generated random ID to session addr
   pub sessions: HashMap<ConnectionId, Session>,
 

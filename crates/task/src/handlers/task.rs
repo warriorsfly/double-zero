@@ -81,7 +81,7 @@ pub struct PatchTaskInput {
 
 async fn patch_task(task: Json<PatchTaskInput>, task_id: Query<String>) {}
 
-async fn complate_task(task_id: Query<String>) {}
+async fn complete_task(task_id: Query<String>) {}
 
 async fn uncomplate_task(task_id: Query<String>) {}
 

@@ -6,6 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+actix-web = "4"
 chrono = { version = "0.4", features = ["serde"] }
 diesel = {git = "https://github.com/diesel-rs/diesel", features = ["chrono", "postgres","r2d2", "serde_json"]}
 serde = { version = "1", features = ["derive"] }
