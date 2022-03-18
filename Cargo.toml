@@ -8,7 +8,7 @@ edition = "2021"
 members = [
     # "crates/bors",
     "crates/schema",
-    "crates/task",
+    "crates/todo",
     "crates/utils",
     "crates/websocket"
 ]
@@ -16,7 +16,8 @@ members = [
 
 [dependencies]
 # double-zero-bors = { version = "0.1", path = "./crates/bors" }
-double-zero-task = { version = "0.1", path = "./crates/task" }
+double-zero-schema = { version = "0.1", path = "./crates/schema" }
+double-zero-todo = { version = "0.1", path = "./crates/todo" }
 double-zero-utils = { version = "0.1", path = "./crates/utils" }
 double-zero-websocket = { version = "0.1", path = "./crates/websocket" }
 

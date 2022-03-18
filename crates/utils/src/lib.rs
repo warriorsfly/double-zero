@@ -8,6 +8,7 @@ use tracing_error::SpanTrace;
 pub mod apub;
 pub mod config;
 pub mod claims;
+pub mod database;
 pub mod utils;
 /// local user id
 pub type UserId = usize;

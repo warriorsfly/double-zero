@@ -5,7 +5,6 @@ mod comment;
 mod event;
 mod follower;
 mod remind;
-mod task;
 mod todo;
 
 #[derive(Serialize)]

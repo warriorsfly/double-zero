@@ -26,5 +26,5 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
                     // .route("/search/{param}", web::get().to(book::search))
                     // .route("/update/{weekday}/{page_index}/{page_size}", web::get().to(book::books_of_weekday)),
             ),
-    );
+    ).service(route('/ws', ws::ws_route));
 }

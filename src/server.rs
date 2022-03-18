@@ -17,6 +17,7 @@ pub(crate) async fn serv() -> std::io::Result<()> {
             // .wrap(InocAuth)
             // 连接数据库
             .configure(config_trans_am_system)
+            .configure(config_database)
             // 注册路由
             .configure(routes)
     })
