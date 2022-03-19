@@ -14,11 +14,11 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
 
         App::new()
-            // 添加跨域
+            // add cors
             .wrap(Cors::permissive())
             // .wrap(casbin_middleware.clone())
             // .wrap(InocAuth)
-            // 连接数据库
+            // add database and websocket server
             .configure(config_double_zero_system)
             // 注册路由
             .configure(config_routes)

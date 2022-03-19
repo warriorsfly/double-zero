@@ -4,7 +4,6 @@ use serde::Deserialize;
 pub struct Config {
     pub database_url: String,
     pub redis_url: String,
-    pub backtrace: u8,
     pub server: String,
 }
 
