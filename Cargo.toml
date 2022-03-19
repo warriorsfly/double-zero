@@ -27,10 +27,8 @@ awc = "3"
 
 anyhow = "1"
 chrono ={version = "0.4",features = ["serde"]}
-env_logger = "0.9"
 
 futures = "0.3"
-log = "0.4"
 rand= "0.8"
 
 thiserror = "1"

@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use actix::prelude::*;
-use double_zero_utils::{ConnectionId, UserId, RoomId, pool::DbPool, IpAddr};
+use actix_web::web::{ServiceConfig, Data};
+use double_zero_utils::{ConnectionId, UserId, RoomId, pool::{DbPool, init_pool}, IpAddr};
 use rand::{prelude::ThreadRng, Rng};
 use tracing::info;
 use crate::messages::{Connect, Disconnect, JoinRoom, WsMessage};
@@ -76,4 +77,15 @@ impl Handler<JoinRoom> for DoubleZeroSystem {
     // JoinRoom
     // let room = self.rooms.get_mut(&msg.room_id).unwa
   }
+}
+
+
+pub(crate) fn config_double_zero_system(cfg:&mut ServiceConfig){
+    let tas =  DoubleZeroSystem{
+        pool:init_pool(),
+        sessions: HashMap::new(),
+        rooms: HashMap::new(),
+        rng: rand::thread_rng(),
+    };
+    cfg.app_data(Data::new(tas));
 }

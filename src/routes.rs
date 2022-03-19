@@ -1,10 +1,11 @@
 
-use std::{collections::{HashMap, HashSet}, time::{Instant, Duration}};
+use std::time::{Instant, Duration};
 
 use actix::{Addr, Actor, Handler, StreamHandler, AsyncContext, WrapFuture, ActorFutureExt, ContextFutureSpawner, ActorContext};
-use actix_web::{web::{self, ServiceConfig, Data}, HttpRequest, HttpResponse, Error};
+use actix_web::{web, HttpRequest, HttpResponse, Error, get};
+
 use actix_web_actors::ws;
-use double_zero_utils::{pool::init_pool, utils::get_ip, ConnectionId, IpAddr, RoomId};
+use double_zero_utils::{utils::get_ip, ConnectionId, IpAddr};
 use tracing::debug;
 
 use crate::{system::DoubleZeroSystem, messages::{Connect, Disconnect, WsMessage}};
@@ -14,10 +15,7 @@ struct WsSession {
     hb: Instant,
     srv: Addr<DoubleZeroSystem>,
     pub ip: IpAddr,
-    pub rooms: Option<HashSet<RoomId>>,
 }
-
-
 
 impl Actor for WsSession {
     type Context = ws::WebsocketContext<Self>;
@@ -184,17 +182,10 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsSession {
     }
 }
 
-pub fn config_double_zero_system(cfg:&mut ServiceConfig){
-    let tas =  DoubleZeroSystem{
-        pool:init_pool(),
-        sessions: HashMap::new(),
-        rooms: HashMap::new(),
-        rng: rand::thread_rng(),
-    };
-    cfg.app_data(Data::new(tas));
-}
 
-pub async fn config_ws_route(
+
+#[get("/ws")]
+async fn ws_route(
     req: HttpRequest,
     stream: web::Payload,
     srv: web::Data<Addr<DoubleZeroSystem>>,
@@ -205,15 +196,13 @@ pub async fn config_ws_route(
             hb: Instant::now(),
             srv: srv.get_ref().clone(),
             ip:get_ip(&req.connection_info()),
-            rooms: None,
         },
         &req,
         stream,
     )
 }
 
-
-pub fn config_routes(cfg: &mut web::ServiceConfig) {
+pub(crate) fn config_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/api")
             .service(
@@ -237,6 +226,5 @@ pub fn config_routes(cfg: &mut web::ServiceConfig) {
                     // .route("/search/{param}", web::get().to(book::search))
                     // .route("/update/{weekday}/{page_index}/{page_size}", web::get().to(book::books_of_weekday)),
             ),
-    );
-    //.service(route("/ws", web::get().to(config_ws_route)));
+    ).service(ws_route);
 }

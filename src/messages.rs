@@ -29,7 +29,7 @@ pub struct Disconnect {
 /// The messages sent to websocket clients
 #[derive(Serialize, Deserialize, Message)]
 #[rtype(result = "Result<String, std::convert::Infallible>")]
-pub struct DzMessage {
+pub struct TextMessage {
     /// Id of the client session
     pub websocket_id: ConnectionId,
     /// Peer message

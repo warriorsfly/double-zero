@@ -1,14 +1,13 @@
 use actix_cors::Cors;
-use actix_web::{middleware::Logger, App, HttpServer};
+use actix_web::{App, HttpServer};
 use double_zero_utils::config::CONFIG;
-use crate::routes::{config_routes, config_double_zero_system};
+use system::config_double_zero_system;
+use routes::config_routes;
 
 mod constants;
 mod messages;
 mod routes;
 mod system;
-mod server;
-
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -17,8 +16,6 @@ async fn main() -> std::io::Result<()> {
         App::new()
             // 添加跨域
             .wrap(Cors::permissive())
-            // 添加日志
-            .wrap(Logger::default())
             // .wrap(casbin_middleware.clone())
             // .wrap(InocAuth)
             // 连接数据库
