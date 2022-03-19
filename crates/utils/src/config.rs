@@ -2,8 +2,8 @@ use dotenv::dotenv;
 use serde::Deserialize;
 #[derive(Clone, Deserialize, Debug)]
 pub struct Config {
+    pub database_url: String,
     pub redis_url: String,
-    pub grpc_url: String,
     pub backtrace: u8,
     pub log: String,
     pub server: String,

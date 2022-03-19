@@ -3,7 +3,7 @@ use double_zero_utils::{DoubleZeroError, UserId};
 use redis::{FromRedisValue, ToRedisArgs};
 use serde::{Deserialize, Serialize};
 
-use crate::server::TransAmSystem;
+use crate::system::WsServer;
 
 /// device info
 #[derive(Deserialize, Serialize)]
@@ -115,6 +115,7 @@ pub struct UserLoginForm {
     platform: Platform,
 }
 
-pub async fn login(am:Data<TransAmSystem>,form:Json<UserLoginForm>)->Result<User,DoubleZeroError>{
+// pub async fn login(am:Data<Veda>,form:Json<UserLoginForm>)->Result<User,DoubleZeroError>{
 
-}
+// }
+

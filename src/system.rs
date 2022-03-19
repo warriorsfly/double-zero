@@ -1,25 +1,28 @@
 use std::collections::{HashMap, HashSet};
 use actix::prelude::*;
-use double_zero_utils::{ConnectionId, UserId, RoomId};
+use double_zero_utils::{ConnectionId, UserId, RoomId, pool::DbPool, IpAddr};
 use rand::{prelude::ThreadRng, Rng};
 use tracing::info;
-use crate::messages::{Connect, Disconnect, JoinRoom};
+use crate::messages::{Connect, Disconnect, JoinRoom, WsMessage};
 
-use super::session::Session;
+pub struct Session {
+  pub addr: Recipient<WsMessage>,
+  pub ip: IpAddr,
+}
+pub struct DoubleZeroSystem {
+  pub(crate) rng: ThreadRng,
 
-pub(crate) struct TransAmSystem {
+  pub(crate) pool:DbPool,
   /// A map from generated random ID to session addr
   pub sessions: HashMap<ConnectionId, Session>,
 
   /// A map from community to set of usizes
   pub rooms: HashMap<RoomId, HashSet<ConnectionId>>,
-
-  pub(crate) rng: ThreadRng,
 }
 
 
 /// Make actor from `ChatServer`
-impl Actor for TransAmSystem {
+impl Actor for DoubleZeroSystem {
   /// We are going to use simple Context, we just need ability to communicate
   /// with other actors.
   type Context = Context<Self>;
@@ -28,7 +31,7 @@ impl Actor for TransAmSystem {
 /// Handler for Connect message.
 ///
 /// Register new session and assign unique id to this session
-impl Handler<Connect> for TransAmSystem {
+impl Handler<Connect> for DoubleZeroSystem {
   type Result = ConnectionId;
 
   fn handle(&mut self, msg: Connect, _ctx: &mut Context<Self>) -> Self::Result {
@@ -36,21 +39,21 @@ impl Handler<Connect> for TransAmSystem {
     let id = self.rng.gen::<usize>();
     info!("{} joined", &msg.ip);
 
-    self.sessions.insert(
-      id,
-      Session {
-        addr: msg.addr,
-        ip: msg.ip,
-        rooms:None,
-      },
-    );
+    // self.sessions.insert(
+    //   id,
+    //   Session {
+    //     addr: msg.addr,
+    //     ip: msg.ip,
+    //     rooms:None,
+    //   },
+    // );
 
     id
   }
 }
 
 /// Handler for Disconnect message.
-impl Handler<Disconnect> for TransAmSystem {
+impl Handler<Disconnect> for DoubleZeroSystem {
   type Result = ();
 
   fn handle(&mut self, msg: Disconnect, _: &mut Context<Self>) {
@@ -66,7 +69,7 @@ impl Handler<Disconnect> for TransAmSystem {
 }
 
 /// Handler for JoinRoom message.
-impl Handler<JoinRoom> for TransAmSystem {
+impl Handler<JoinRoom> for DoubleZeroSystem {
   type Result = ();
 
   fn handle(&mut self, msg: JoinRoom, _: &mut Context<Self>) {
