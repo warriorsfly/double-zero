@@ -2,7 +2,7 @@ table! {
     local_users (id) {
         id -> Int4,
         user_id -> Int4,
-        password_encrypted -> Text,
+        password_encrypted -> Varchar,
         salt -> Varchar,
         phone -> Nullable<Varchar>,
     }

@@ -2,7 +2,7 @@ use crate::messages::{Connect, Disconnect, JoinRoom, WsMessage};
 use actix::prelude::*;
 use actix_web::web::{Data, ServiceConfig};
 use double_zero_utils::{
-    pool::{init_pool, DbPool},
+    pool::{config_pool, DbPool},
     ConnectionId, IpAddr, RoomId,
 };
 use rand::{thread_rng, Rng};
@@ -79,7 +79,7 @@ impl Handler<JoinRoom> for DoubleZeroSystem {
 
 pub(crate) fn config_double_zero_system(cfg: &mut ServiceConfig) {
     let tas = DoubleZeroSystem {
-        pool: init_pool(),
+        pool: config_pool(),
         sessions: HashMap::new(),
         rooms: HashMap::new(),
     };

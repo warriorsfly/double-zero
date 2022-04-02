@@ -111,9 +111,9 @@ impl From<DBError> for Error {
                     let message = info.details().unwrap_or_else(|| info.message()).to_string();
                     return Error::BadRequest(message);
                 }
-                Error::InternalServerError("Unknown database error".into())
+                Error::DataBaseError("Unknown database error".into())
             }
-            _ => Error::InternalServerError("Unknown database error".into()),
+            _ => Error::DataBaseError("Unknown database error".into()),
         }
     }
 }

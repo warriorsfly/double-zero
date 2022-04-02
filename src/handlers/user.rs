@@ -72,3 +72,8 @@ pub async fn login(
     };
     respond_json(res)
 }
+
+#[cfg(test)]
+mod test{
+    
+}

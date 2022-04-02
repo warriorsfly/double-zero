@@ -1,5 +1,5 @@
 use crate::source::{LocalUser, NewLocalUser, NewUser, User};
-use diesel::{prelude::*, dsl::*};
+use diesel::{dsl::*, prelude::*};
 use double_zero_utils::{
     encryption::{hash_password, verify_password},
     pool::DbPool,
@@ -14,7 +14,7 @@ pub fn signup<'a>(pool: &'a DbPool, username: &'a str, pwd: &'a str) -> Result<U
     let existed = select(exists(users.filter(name.eq(username)))).get_result(&mut conn);
     if let Ok(true) = existed {
         return Err(Error::BadRequest("username existed".to_string()));
-    } 
+    }
     let usr = NewUser {
         name: username,
         bio: "",
@@ -27,7 +27,7 @@ pub fn signup<'a>(pool: &'a DbPool, username: &'a str, pwd: &'a str) -> Result<U
         let user = diesel::insert_into(users)
             .values(usr)
             .get_result::<User>(c)?;
-        
+
         let local_user = NewLocalUser {
             user_id: &user.id,
             password_encrypted: &psw_hashed.0,
@@ -60,4 +60,42 @@ pub fn login<'a>(pool: &'a DbPool, username: &'a str, psw: &'a str) -> Result<Us
 
         Ok(user)
     })
+}
+
+#[cfg(test)]
+mod test {
+    use double_zero_utils::pool::init_pool;
+
+    use super::*;
+
+    fn exist_user(db: &DbPool, username: &str) -> Result<bool, Error> {
+        use crate::schema::users::dsl::*;
+        let conn = &mut db.get()?;
+        let user = users.filter(name.eq(username)).first::<User>(conn);
+        Ok(user.is_ok())
+    }
+
+    fn delete_user(db: &DbPool, username: &str) -> Result<(), Error> {
+        use crate::schema::users::dsl::*;
+        let conn = &mut db.get()?;
+        delete(users.filter(name.eq(username))).execute(conn)?;
+        Ok(())
+    }
+
+    #[test]
+    fn test_signup() {
+        let pool = init_pool("postgres://allen:walker@127.0.0.1/double_zero");
+        if exist_user(&pool, "test").unwrap() {
+            let _ = delete_user(&pool, "test").unwrap();
+        }
+        let user = signup(&pool, "test", "test").unwrap();
+        assert_eq!(user.name, "test");
+    }
+
+    #[test]
+    fn test_login() {
+        let pool = init_pool("postgres://allen:walker@127.0.0.1/double_zero");
+        let user = login(&pool, "test", "test").unwrap();
+        assert_eq!(user.name, "test");
+    }
 }

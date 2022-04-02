@@ -13,7 +13,7 @@ pub fn hash_password(password: &str) -> Result<(String, String), Unspecified> {
     let mut salt = [0u8; CREDENTIAL_LEN];
     rng.fill(&mut salt)?;
 
-    let mut pbkdf2_hash = [0u8; 32];
+    let mut pbkdf2_hash = [0u8; CREDENTIAL_LEN];
     pbkdf2::derive(
         pbkdf2::PBKDF2_HMAC_SHA512,
         n_iter,

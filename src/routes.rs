@@ -8,7 +8,7 @@ use actix_web_actors::ws;
 use double_zero_utils::{utils::get_ip, ConnectionId, IpAddr, middleware::{JwtAuth}};
 use tracing::debug;
 
-use crate::{system::DoubleZeroSystem, messages::{Connect, Disconnect, WsMessage}, handlers::signup};
+use crate::{system::DoubleZeroSystem, messages::{Connect, Disconnect, WsMessage}, handlers::{signup, login}};
 
 struct WsSession {
     id: ConnectionId,
@@ -200,8 +200,8 @@ pub(crate) fn config_routes(cfg: &mut web::ServiceConfig) {
         
             .service(
                 web::scope("/account")
-                    .route("signup", web::post().to(signup))
-                    // .route("login", web::post().to(user::login)),
+                    .route("/signup", web::post().to(signup))
+                    .route("/login", web::post().to(login)),
             ).service(
                 web::scope("/users")
                 .wrap(JwtAuth)
