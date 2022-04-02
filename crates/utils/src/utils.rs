@@ -1,4 +1,4 @@
-use crate::{IpAddr, DoubleZeroError};
+use crate::{IpAddr, Error};
 use actix_web::dev::ConnectionInfo;
 use chrono::{DateTime, FixedOffset, NaiveDateTime};
 use itertools::Itertools;
@@ -15,11 +15,6 @@ static VALID_POST_TITLE_REGEX: Lazy<Regex> =
   Lazy::new(|| Regex::new(r".*\S{3,}.*").expect("compile regex"));
 static VALID_MATRIX_ID_REGEX: Lazy<Regex> = Lazy::new(|| {
   Regex::new(r"^@[A-Za-z0-9._=-]+:[A-Za-z0-9.-]+\.[A-Za-z]{2,}$").expect("compile regex")
-});
-// taken from https://en.wikipedia.org/wiki/UTM_parameters
-static CLEAN_URL_PARAMS_REGEX: Lazy<Regex> = Lazy::new(|| {
-  Regex::new(r"^utm_source|utm_medium|utm_campaign|utm_term|utm_content|gclid|gclsrc|dclid|fbclid$")
-    .expect("compile regex")
 });
 
 pub fn naive_from_unix(time: i64) -> NaiveDateTime {
@@ -59,24 +54,7 @@ pub(crate) fn slur_check<'a>(
   }
 }
 
-pub fn check_slurs(text: &str, slur_regex: &Option<Regex>) -> Result<(), DoubleZeroError> {
-  if let Err(slurs) = slur_check(text, slur_regex) {
-    let error = DoubleZeroError::from(anyhow::anyhow!("{}", slurs_vec_to_str(slurs)));
-    Err(error.with_message("slurs"))
-  } else {
-    Ok(())
-  }
-}
 
-pub fn check_slurs_opt(
-  text: &Option<String>,
-  slur_regex: &Option<Regex>,
-) -> Result<(), DoubleZeroError> {
-  match text {
-    Some(t) => check_slurs(t, slur_regex),
-    None => Ok(()),
-  }
-}
 
 pub(crate) fn slurs_vec_to_str(slurs: Vec<&str>) -> String {
   let start = "No slurs - ";

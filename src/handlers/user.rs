@@ -1,121 +1,74 @@
-use actix_web::web::{Data, Json};
-use double_zero_utils::{DoubleZeroError, UserId};
-use redis::{FromRedisValue, ToRedisArgs};
+use actix_web::web::{block, Data, Json};
+use double_zero_schema::{
+    repository,
+    source::{NewUser, User},
+};
+use double_zero_utils::{
+    claims::{create_jwt, Claims},
+    encryption::hash_password,
+    helpers::respond_json,
+    validate::validate,
+    Error,
+};
 use serde::{Deserialize, Serialize};
+use validator::Validate;
 
-use crate::system::WsServer;
+use crate::system::DoubleZeroSystem;
 
-/// device info
-#[derive(Deserialize, Serialize)]
-pub struct Info {
-    device_name: String,
-    factory_name: Option<String>,
-    serial_number: Option<String>,
+#[derive(Debug, Deserialize, Validate)]
+pub struct UserForm {
+    pub name: String,
+    #[validate(phone(message = "phone must be a valid email"))]
+    pub phone: String,
+    #[validate(length(min = 6))]
+    pub password: String,
+    pub bio: Option<String>,
+    pub avatar: Option<String>,
 }
 
-impl FromRedisValue for Info {
-    fn from_redis_value(v: &redis::Value) -> redis::RedisResult<Self> {
-        match *v {
-            redis::Value::Data(ref val) => match serde_json::from_slice(val) {
-                Err(_) => Err(((redis::ErrorKind::TypeError, "Can't serialize value")).into()),
-                Ok(v) => Ok(v),
-            },
-            _ => Err(((
-                redis::ErrorKind::ResponseError,
-                "Response type not Dashboard compatible.",
-            ))
-                .into()),
-        }
-    }
+#[derive(Debug, Deserialize, Validate)]
+pub struct PatchUserForm {
+    pub username: Option<String>,
+    pub email: Option<String>,
+    pub password: Option<String>,
+    pub bio: Option<String>,
+    pub avatar: Option<String>,
 }
 
-impl ToRedisArgs for Info {
-    fn write_redis_args<W>(&self, out: &mut W)
-    where
-        W: ?Sized + redis::RedisWrite,
-    {
-        "device_name".write_redis_args(out);
-        let _ = &self.device_name.write_redis_args(out);
-        if let Some(factory_name) = &self.factory_name {
-            "factory_name".write_redis_args(out);
-            factory_name.write_redis_args(out);
-        }
-
-        if let Some(serial_number) = &self.serial_number {
-            "serial_number".write_redis_args(out);
-            serial_number.write_redis_args(out);
-        }
-    }
+#[derive(Debug, Deserialize, Validate)]
+pub struct LoginForm {
+    pub name: String,
+    pub password: String,
 }
 
-#[derive(Deserialize, Serialize)]
-#[serde(tag = "platform", content = "device")]
-pub enum Platform {
-    Android(Info),
-    Embedded(Info),
-    IPhone(Info),
-    IPad(Info),
-    Macos(Info),
-    Tablet(Info),
-    Web(Info),
-    Windows(Info),
+#[derive(Debug, Serialize)]
+pub struct UserToken {
+    pub token: String,
+    pub account: User,
 }
 
-impl ToRedisArgs for Platform {
-    fn write_redis_args<W>(&self, out: &mut W)
-    where
-        W: ?Sized + redis::RedisWrite,
-    {
-        let (platform, device) = match self {
-            Platform::Android(info) => ("android", info),
-            Platform::Embedded(info) => ("embedded", info),
-            Platform::IPhone(info) => ("iphone", info),
-            Platform::IPad(info) => ("ipad", info),
-            Platform::Macos(info) => ("macos", info),
-            Platform::Tablet(info) => ("tablet", info),
-            Platform::Web(info) => ("web", info),
-            Platform::Windows(info) => ("windows", info),
-        };
+pub(crate) async fn signup(
+    system: Data<DoubleZeroSystem>,
+    entity: Json<UserForm>,
+) -> Result<Json<User>, Error> {
+    validate(&entity)?;
 
-        out.write_arg(b"platform");
-        out.write_arg(platform.as_bytes());
-        out.write_arg(b"device");
-        device.write_redis_args(out);
-    }
+    let usr: User =
+        block(move || repository::signup(&system.pool, &entity.name,&entity.password))
+            .await??;
+    respond_json(usr)
 }
-
-impl FromRedisValue for Platform {
-    fn from_redis_value(v: &redis::Value) -> redis::RedisResult<Self> {
-        match *v {
-            redis::Value::Data(ref val) => match serde_json::from_slice(val) {
-                Err(_) => Err(((redis::ErrorKind::TypeError, "Can't serialize value")).into()),
-                Ok(v) => Ok(v),
-            },
-            _ => Err(((
-                redis::ErrorKind::ResponseError,
-                "Response type not Dashboard compatible.",
-            ))
-                .into()),
-        }
-    }
+pub async fn login(
+    system: Data<DoubleZeroSystem>,
+    entity: Json<LoginForm>,
+) -> Result<Json<UserToken>, Error> {
+    validate(&entity)?;
+    let ur =
+        block(move || repository::login(&system.pool, &entity.name, &entity.password)).await??;
+    let claims = Claims::new(ur.id);
+    let res = UserToken {
+        token: create_jwt(claims)?,
+        account: ur,
+    };
+    respond_json(res)
 }
-
-/// device info
-#[derive(Deserialize, Serialize)]
-pub struct User {
-    id: UserId,
-    name: String,
-    platform: Platform,
-}
-
-#[derive(Deserialize, Serialize)]
-pub struct UserLoginForm {
-    name: String,
-    password: String,
-    platform: Platform,
-}
-
-// pub async fn login(am:Data<Veda>,form:Json<UserLoginForm>)->Result<User,DoubleZeroError>{
-
-// }
-

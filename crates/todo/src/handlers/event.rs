@@ -1,9 +1,9 @@
 use serde::Deserialize;
 
 #[derive(Deserialize)]
-pub struct TaskEventForm {
+pub struct TodoEventForm {
     /// Todo ID
-    task_id: String,
+    todo_id: String,
     /// Notification type
     /// - 1: todo details change
     /// - 2: todo collaborators change

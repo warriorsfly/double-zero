@@ -5,10 +5,10 @@ use actix::{Addr, Actor, Handler, StreamHandler, AsyncContext, WrapFuture, Actor
 use actix_web::{web, HttpRequest, HttpResponse, Error, get};
 
 use actix_web_actors::ws;
-use double_zero_utils::{utils::get_ip, ConnectionId, IpAddr};
+use double_zero_utils::{utils::get_ip, ConnectionId, IpAddr, middleware::{JwtAuth}};
 use tracing::debug;
 
-use crate::{system::DoubleZeroSystem, messages::{Connect, Disconnect, WsMessage}};
+use crate::{system::DoubleZeroSystem, messages::{Connect, Disconnect, WsMessage}, handlers::signup};
 
 struct WsSession {
     id: ConnectionId,
@@ -102,72 +102,67 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsSession {
                 ctx.pong(&msg);
             }
             ws::Message::Pong(_) => {
+  
                 self.hb = Instant::now();
             }
             ws::Message::Text(text) => {
-                // let m = text.trim();
-                // // we check for /sss type of messages
-                // if m.starts_with('/') {
-                //     let v: Vec<&str> = m.splitn(2, ' ').collect();
-                //     match v[0] {
-                //         // "/list" => {
-                //         //     // Send ListRooms message to chat server and wait for
-                //         //     // response
-                //         //     println!("List rooms");
-                //         //     self.srv
-                //         //         .send(server::ListRooms)
-                //         //         .into_actor(self)
-                //         //         .then(|res, _, ctx| {
-                //         //             match res {
-                //         //                 Ok(rooms) => {
-                //         //                     for room in rooms {
-                //         //                         ctx.text(room);
-                //         //                     }
-                //         //                 }
-                //         //                 _ => println!("Something is wrong"),
-                //         //             }
-                //         //             fut::ready(())
-                //         //         })
-                //         //         .wait(ctx)
-                //         //     // .wait(ctx) pauses all events in context,
-                //         //     // so actor wont receive any new messages until it get list
-                //         //     // of rooms back
-                //         // }
-                //         // "/join" => {
-                //             if v.len() == 2 {
-                //                 // self.room = v[1].to_owned();
-                //                 self.srv.do_send(JoinRoom {
-                //                     websocket_id: self.id,
-                //                     room_id: self.v[1].to_owned(),
-                //                 });
+                let m = text.trim();
+                // we check for /sss type of messages
+                if m.starts_with('/') {
+                    let v: Vec<&str> = m.splitn(2, ' ').collect();
+                    match v[0] {
+                        // "/list" => {
+                        //     // Send ListRooms message to chat server and wait for
+                        //     // response
+                        //     println!("List rooms");
+                        //     self.srv
+                        //         .send(ListRooms)
+                        //         .into_actor(self)
+                        //         .then(|res, _, ctx| {
+                        //             match res {
+                        //                 Ok(rooms) => {
+                        //                     for room in rooms {
+                        //                         ctx.text(room);
+                        //                     }
+                        //                 }
+                        //                 _ => println!("Something is wrong"),
+                        //             }
+                        //             fut::ready(())
+                        //         })
+                        //         .wait(ctx)
+                        //     // .wait(ctx) pauses all events in context,
+                        //     // so actor wont receive any new messages until it get list
+                        //     // of rooms back
+                        // }
+                        "/join" => {
+                            if v.len() == 2 {
+                                // self.room = v[1].to_owned();
+                                // self.srv.do_send(JoinRoom {
+                                //     websocket_id: self.id,
+                                //     room_id: RoomId::parse(v[1].to_owned()),
+                                // });
 
-                //                 ctx.text("joined");
-                //             } else {
-                //                 ctx.text("!!! room name is required");
-                //             }
-                //         }
-                //         "/name" => {
-                //             if v.len() == 2 {
-                //                 self.name = Some(v[1].to_owned());
-                //             } else {
-                //                 ctx.text("!!! name is required");
-                //             }
-                //         }
-                //         _ => ctx.text(format!("!!! unknown command: {:?}", m)),
-                //     }
-                // } else {
-                //     let msg = if let Some(ref name) = self.name {
-                //         format!("{}: {}", name, m)
-                //     } else {
-                //         m.to_owned()
-                //     };
-                //     // send message to chat server
-                //     self.srv.do_send(server::ClientMessage {
-                //         id: self.id,
-                //         msg,
-                //         room: self.room.clone(),
-                //     })
-                // }
+                                ctx.text("joined");
+                            } else {
+                                ctx.text("!!! room name is required");
+                            }
+                        }
+                        
+                        _ => ctx.text(format!("!!! unknown command: {:?}", m)),
+                    }
+                } else {
+                    // let msg = if let Some(ref name) = self.name {
+                    //     format!("{}: {}", name, m)
+                    // } else {
+                    //     m.to_owned()
+                    // };
+                    // // send message to chat server
+                    // self.srv.do_send(server::ClientMessage {
+                    //     id: self.id,
+                    //     msg,
+                    //     room: self.room.clone(),
+                    // })
+                }
             }
             ws::Message::Binary(_) => println!("Unexpected binary"),
             ws::Message::Close(reason) => {
@@ -182,9 +177,6 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsSession {
     }
 }
 
-
-
-#[get("/ws")]
 async fn ws_route(
     req: HttpRequest,
     stream: web::Payload,
@@ -205,13 +197,20 @@ async fn ws_route(
 pub(crate) fn config_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/api")
+        
             .service(
+                web::scope("/account")
+                    .route("signup", web::post().to(signup))
+                    // .route("login", web::post().to(user::login)),
+            ).service(
                 web::scope("/users")
+                .wrap(JwtAuth)
                     // .route("signup", web::post().to(user::signup))
                     // .route("login", web::post().to(user::login)),
             )
             .service(
                 web::scope("/rooms")
+                .wrap(JwtAuth)
                     // .route(
                     //     "/{slug}/episodes/{page_index}/{page_size}",
                     //     web::get().to(book::get_book_episodes),
@@ -219,6 +218,7 @@ pub(crate) fn config_routes(cfg: &mut web::ServiceConfig) {
                     
             ).service(
                 web::scope("/todos")
+                .wrap(JwtAuth)
                     // .route(
                     //     "/{slug}/episodes/{page_index}/{page_size}",
                     //     web::get().to(book::get_book_episodes),
@@ -226,5 +226,8 @@ pub(crate) fn config_routes(cfg: &mut web::ServiceConfig) {
                     // .route("/search/{param}", web::get().to(book::search))
                     // .route("/update/{weekday}/{page_index}/{page_size}", web::get().to(book::books_of_weekday)),
             ),
-    ).service(ws_route);
+    ).service(
+        web::scope("/ws").wrap(JwtAuth)
+            .route("", web::get().to(ws_route))
+        );
 }

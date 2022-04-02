@@ -5,6 +5,8 @@ pub struct Config {
     pub database_url: String,
     pub redis_url: String,
     pub server: String,
+    pub jwt_key:String,
+    pub jwt_expiration: i64,
 }
 
 lazy_static! {

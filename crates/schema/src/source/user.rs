@@ -1,23 +1,23 @@
-
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use crate::schema::users;
-#[derive(Clone, Queryable, Identifiable, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, Queryable, Serialize, Deserialize,Debug)]
 #[diesel(table_name = users)]
 pub struct User {
-  pub id: i32,
-  pub name: String,
-  pub display_name: Option<String>,
-  pub avatar: Option<String>,
-  pub updated_at: Option<chrono::NaiveDateTime>,
-  pub bio: Option<String>,
-  pub local: bool,
-  pub private_key: Option<String>,
-  pub public_key: String,
-  pub last_refreshed_at: chrono::NaiveDateTime,
-  pub deleted: bool,
-  pub inbox_url: String,
-  pub shared_inbox_url: Option<String>,
-  pub admin: bool,
-  pub bot_account: bool,
+    pub id: i32,
+    pub name: String,
+    pub display_name: String,
+    pub avatar: String,
+    pub bio: String,
+    pub local: bool,
+}
+
+#[derive(Debug, Insertable)]
+#[diesel(table_name = users)]
+pub struct NewUser<'a> {
+    pub name: &'a str,
+    // pub display_name: &'a str,
+    pub bio: &'a str,
+    pub avatar: &'a str,
+    // pub local: &'a bool,
 }
