@@ -1,4 +1,4 @@
-use crate::messages::{Connect, Disconnect, JoinRoom, WsMessage};
+use crate::ws::session::{Connect, Disconnect, JoinRoom, WsMessage};
 use actix::prelude::*;
 use actix_web::web::{Data, ServiceConfig};
 use double_zero_utils::{

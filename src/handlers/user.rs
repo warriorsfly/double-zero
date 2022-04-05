@@ -13,14 +13,14 @@ use double_zero_utils::{
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-use crate::system::DoubleZeroSystem;
+use crate::ws::system::DoubleZeroSystem;
 
 #[derive(Debug, Deserialize, Validate)]
 pub struct UserForm {
     pub name: String,
-    #[validate(phone(message = "phone must be a valid email"))]
+    #[validate(phone(message = "phone must be a valid phone number"))]
     pub phone: String,
-    #[validate(length(min = 6))]
+    #[validate(length(min = 4))]
     pub password: String,
     pub bio: Option<String>,
     pub avatar: Option<String>,
@@ -35,7 +35,7 @@ pub struct PatchUserForm {
     pub avatar: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Serialize, Validate)]
 pub struct LoginForm {
     pub name: String,
     pub password: String,
@@ -54,8 +54,7 @@ pub(crate) async fn signup(
     validate(&entity)?;
 
     let usr: User =
-        block(move || repository::signup(&system.pool, &entity.name,&entity.password))
-            .await??;
+        block(move || repository::signup(&system.pool, &entity.name, &entity.password)).await??;
     respond_json(usr)
 }
 pub async fn login(
@@ -74,6 +73,4 @@ pub async fn login(
 }
 
 #[cfg(test)]
-mod test{
-    
-}
+mod test {}
